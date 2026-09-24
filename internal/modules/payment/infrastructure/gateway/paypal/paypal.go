@@ -15,6 +15,7 @@ import (
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/common"
+	"github.com/dujiao-next/internal/shared/netguard"
 	"github.com/shopspring/decimal"
 )
 
@@ -585,7 +586,7 @@ func getAccessToken(ctx context.Context, cfg *Config) (string, error) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.SetBasicAuth(cfg.ClientID, cfg.ClientSecret)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := netguard.NewHTTPClient(0).Do(req)
 	if err != nil {
 		return "", fmt.Errorf("%w: request token failed", ErrAuthFailed)
 	}
@@ -627,7 +628,7 @@ func doJSONRequest(ctx context.Context, cfg *Config, method, endpoint, token str
 		req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(token))
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := netguard.NewHTTPClient(0).Do(req)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%w: http request failed", ErrRequestFailed)
 	}

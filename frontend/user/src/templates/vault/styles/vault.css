@@ -360,114 +360,91 @@ body.vault-tokens {
   gap: 14px;
 }
 
-/* Ticket-like product card */
-.vault-pass-card {
-  position: relative;
+/* Sales-first product cards: visual identity stays in the page shell,
+   while the buying area prioritizes name / price / stock / fulfillment / action. */
+.vault-shop-card {
   display: flex;
-  min-height: 330px;
+  min-height: 300px;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-  transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s var(--ease);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
 }
 
-.vault-pass-card:hover {
-  transform: translateY(-5px);
+.vault-shop-card:hover {
+  transform: translateY(-3px);
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow);
 }
 
-.vault-pass-card::before,
-.vault-pass-card::after {
-  content: "";
-  position: absolute;
-  top: 186px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  z-index: 4;
-}
-
-.vault-pass-card::before { left: -9px; }
-.vault-pass-card::after { right: -9px; }
-
-.vault-pass-cover {
+.vault-shop-card-media {
   position: relative;
-  height: 178px;
+  display: grid;
+  height: 146px;
+  place-items: center;
   overflow: hidden;
-  background: #161b20;
 }
 
-.vault-pass-cover::after {
+.vault-shop-card-media::after {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, transparent 35%, rgba(0,0,0,.4)),
-    radial-gradient(circle at 78% 24%, rgba(155,229,90,.34), transparent 42%);
+  background: linear-gradient(180deg, transparent 45%, rgba(0,0,0,.2));
+  pointer-events: none;
 }
 
-.vault-pass-index {
-  position: absolute;
-  left: 13px;
-  top: 13px;
-  z-index: 5;
-  display: inline-flex;
-  min-width: 42px;
-  height: 26px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 7px;
-  background: var(--red);
-  color: var(--on-red);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: .08em;
-}
-
-.vault-pass-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border-top: 1px dashed var(--border-strong);
-  padding-top: 12px;
-  color: var(--ink-3);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.vault-pass-price {
+.vault-shop-price {
+  color: var(--ink);
   font-family: var(--font-head);
-  font-size: 25px;
+  font-size: 27px;
   font-weight: 900;
   letter-spacing: -.035em;
+  line-height: 1;
 }
 
-.vault-pass-action {
+.vault-shop-status {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 28px;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border-radius: 8px;
-  padding: 0 12px;
+  gap: 6px;
+  border-radius: 7px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.vault-shop-buy {
+  display: inline-flex;
+  min-height: 42px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 9px;
+  padding: 0 14px;
   background: #111418;
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
+  transition: transform .18s ease, background-color .18s ease;
 }
 
-.dark .vault-pass-action {
+.vault-shop-buy:hover {
+  transform: translateY(-1px);
+  background: #262c31;
+}
+
+.dark .vault-shop-buy {
   background: var(--red);
   color: var(--on-red);
+}
+
+.dark .vault-shop-buy:hover {
+  background: var(--red-strong);
 }
 
 /* Footer: deliberate, brand-neutral, no upstream-product look */

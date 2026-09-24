@@ -1,10 +1,11 @@
 <template>
   <div class="vault-scope">
     <!-- 顶栏 -->
-    <header class="sticky top-0 z-50 border-b bg-[color:var(--bg)]">
-      <div class="mx-auto flex h-[70px] w-full max-w-[1180px] items-center gap-3 px-4 sm:gap-5 sm:px-6">
-        <RouterLink class="inline-flex min-w-0 items-center gap-2.5 text-[19px] font-extrabold tracking-[-0.02em] text-foreground" to="/" :title="brandName">
-          <img v-if="brandLogo" :src="brandLogo" :alt="brandName" class="h-8 max-w-[120px] object-contain sm:max-w-[160px]" />
+    <header class="vault-topbar-shell">
+      <div class="vault-topbar">
+        <RouterLink class="inline-flex min-w-0 items-center gap-3 text-[17px] font-extrabold tracking-[-0.02em] text-white" to="/" :title="brandName">
+          <span class="vault-brand-signal" aria-hidden="true"></span>
+          <img v-if="brandLogo" :src="brandLogo" :alt="brandName" class="h-7 max-w-[120px] object-contain brightness-0 invert sm:max-w-[150px]" />
           <span v-else class="truncate">{{ brandName }}</span>
         </RouterLink>
 
@@ -13,34 +14,34 @@
             <RouterLink
               v-if="item.type === 'route'"
               :to="item.path"
-              class="whitespace-nowrap rounded-full px-3.5 py-2 text-[15px] font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              active-class="!bg-primary/10 !text-primary"
+              class="vault-nav-link whitespace-nowrap"
+              active-class="router-link-active"
             >{{ item.label }}</RouterLink>
             <a
               v-else
               :href="item.path"
               :target="item.target"
               rel="noopener noreferrer"
-              class="whitespace-nowrap rounded-full px-3.5 py-2 text-[15px] font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              class="vault-nav-link whitespace-nowrap"
             >{{ item.label }}</a>
           </template>
         </nav>
 
         <div class="ml-auto flex items-center gap-2">
-          <RouterLink class="grid h-10 w-10 flex-none place-items-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary" to="/products" :aria-label="t('nav.products')"><Search class="h-[18px] w-[18px]" /></RouterLink>
-          <RouterLink v-if="!userAuthStore.isAuthenticated" class="grid h-10 w-10 flex-none place-items-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary" to="/guest/orders" :aria-label="t('navbar.guestOrders')" :title="t('navbar.guestOrders')"><ClipboardList class="h-[18px] w-[18px]" /></RouterLink>
-          <button class="grid h-10 w-10 flex-none place-items-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary" type="button" :aria-label="t('resellerConsole.common.toggleTheme')" @click="toggleTheme">
+          <RouterLink class="vault-icon-button" to="/products" :aria-label="t('nav.products')"><Search class="h-[18px] w-[18px]" /></RouterLink>
+          <RouterLink v-if="!userAuthStore.isAuthenticated" class="vault-icon-button" to="/guest/orders" :aria-label="t('navbar.guestOrders')" :title="t('navbar.guestOrders')"><ClipboardList class="h-[18px] w-[18px]" /></RouterLink>
+          <button class="vault-icon-button" type="button" :aria-label="t('resellerConsole.common.toggleTheme')" @click="toggleTheme">
             <Sun v-if="theme === 'dark'" class="h-[18px] w-[18px]" />
             <Moon v-else class="h-[18px] w-[18px]" />
           </button>
-          <RouterLink class="relative grid h-10 w-10 flex-none place-items-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary" to="/cart" :aria-label="t('navbar.cart')">
+          <RouterLink class="vault-icon-button relative" to="/cart" :aria-label="t('navbar.cart')">
             <ShoppingCart class="h-[18px] w-[18px]" />
             <span v-if="cartCount > 0" class="absolute -right-[3px] -top-[3px] grid h-[19px] min-w-[19px] place-items-center rounded-full bg-primary px-[5px] text-[11px] font-bold text-white">{{ cartCount }}</span>
           </RouterLink>
 
           <!-- 语言切换 -->
           <div class="relative max-[900px]:hidden" ref="langEl">
-            <button class="grid h-10 w-10 flex-none place-items-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary" type="button" :aria-label="t('navbar.selectLanguage')" @click="toggleLang">
+            <button class="vault-icon-button" type="button" :aria-label="t('navbar.selectLanguage')" @click="toggleLang">
               <Languages class="h-[18px] w-[18px]" />
             </button>
             <div v-if="langOpen" class="absolute right-0 top-[calc(100%+8px)] z-[60] flex min-w-[168px] flex-col gap-0.5 rounded-md border bg-card p-2 shadow-[var(--shadow-lg)]">
@@ -57,11 +58,11 @@
             <RouterLink class="inline-flex items-center gap-2 rounded-full border-2 border-hairline-strong px-3.5 py-1.5 text-[13px] font-bold text-foreground transition-colors hover:border-[color:var(--ink)] max-[900px]:hidden" to="/me"><User class="h-[18px] w-[18px]" /> {{ t('navbar.personalCenter') }}</RouterLink>
             <button type="button" class="grid h-10 w-10 flex-none place-items-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive max-[900px]:hidden" :aria-label="t('navbar.logout')" :title="t('navbar.logout')" @click="userAuthStore.logout()"><LogOut class="h-[18px] w-[18px]" /></button>
           </template>
-          <RouterLink v-else class="inline-flex items-center gap-2 rounded-full bg-primary px-3.5 py-1.5 text-[13px] font-bold text-primary-foreground transition-colors hover:bg-primary/90 max-[900px]:hidden" to="/auth/login">{{ t('navbar.login') }}</RouterLink>
+          <RouterLink v-else class="vault-login-cta max-[900px]:hidden" to="/auth/login">{{ t('navbar.login') }}</RouterLink>
 
           <!-- 移动端：更多菜单 -->
           <div class="relative hidden max-[900px]:block" ref="moreEl">
-            <button class="grid h-10 w-10 flex-none place-items-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary" type="button" :aria-label="t('navbar.more')" @click="toggleMore">
+            <button class="vault-icon-button" type="button" :aria-label="t('navbar.more')" @click="toggleMore">
               <Menu v-if="!moreOpen" class="pointer-events-none h-[18px] w-[18px]" />
               <X v-else class="pointer-events-none h-[18px] w-[18px]" />
             </button>
@@ -91,31 +92,31 @@
     </main>
 
     <!-- 页脚 -->
-    <footer class="mt-[var(--gap-block)] border-t bg-[color:var(--bg-warm)]">
+    <footer class="vault-footer">
       <div class="mx-auto grid w-full max-w-[1180px] grid-cols-1 gap-[30px] px-6 pb-9 pt-[52px] sm:grid-cols-2 lg:grid-cols-[1.7fr_repeat(3,1fr)]">
         <div>
-          <RouterLink class="inline-flex items-center gap-2.5 text-[19px] font-extrabold tracking-[-0.02em] text-foreground" to="/">
+          <RouterLink class="vault-footer-brand inline-flex items-center gap-2.5 text-[19px] font-extrabold tracking-[-0.02em]" to="/">
             <img v-if="brandLogo" :src="brandLogo" :alt="brandName" class="h-8 max-w-[160px] object-contain" />
             <span v-else>{{ brandName }}</span>
           </RouterLink>
           <p class="mt-3 max-w-[36ch] text-[14.5px] text-muted-foreground">{{ brandDescription || t('vault.footer.tagline') }}</p>
         </div>
         <div>
-          <h4 class="mb-3 text-sm font-bold">{{ t('vault.footer.shop') }}</h4>
+          <h4 class="mb-3 text-sm font-bold text-white">{{ t('vault.footer.shop') }}</h4>
           <RouterLink v-if="!isListMode" to="/products" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary">{{ t('products.allCategories') }}</RouterLink>
           <RouterLink v-if="noticeEnabled" to="/notice" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary">{{ t('nav.notice') }}</RouterLink>
           <RouterLink v-if="blogEnabled" to="/blog" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary">{{ t('nav.blog') }}</RouterLink>
           <RouterLink to="/me" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary">{{ t('navbar.personalCenter') }}</RouterLink>
         </div>
         <div>
-          <h4 class="mb-3 text-sm font-bold">{{ t('vault.footer.support') }}</h4>
+          <h4 class="mb-3 text-sm font-bold text-white">{{ t('vault.footer.support') }}</h4>
           <RouterLink v-if="aboutEnabled" to="/about" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><Info class="h-4 w-4" /> {{ t('nav.about') }}</RouterLink>
           <RouterLink v-if="!userAuthStore.isAuthenticated" to="/guest/orders" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><ClipboardList class="h-4 w-4" /> {{ t('navbar.guestOrders') }}</RouterLink>
           <a v-if="contact?.telegram" :href="contact.telegram" target="_blank" rel="noopener noreferrer" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><Send class="h-4 w-4" /> Telegram</a>
           <a v-if="contact?.whatsapp" :href="contact.whatsapp" target="_blank" rel="noopener noreferrer" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><MessageCircle class="h-4 w-4" /> WhatsApp</a>
         </div>
         <div>
-          <h4 class="mb-3 text-sm font-bold">{{ t('vault.footer.legal') }}</h4>
+          <h4 class="mb-3 text-sm font-bold text-white">{{ t('vault.footer.legal') }}</h4>
           <RouterLink to="/terms" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary">{{ t('footer.terms') }}</RouterLink>
           <RouterLink to="/privacy" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary">{{ t('footer.privacy') }}</RouterLink>
           <a v-for="link in footerLinks" :key="link.name" :href="link.url || 'javascript:void(0)'" :target="link.url ? '_blank' : undefined" rel="noopener noreferrer" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary">{{ link.name }}</a>
@@ -124,10 +125,7 @@
       <div class="mx-auto flex w-full max-w-[1180px] flex-wrap items-center justify-between gap-3.5 border-t px-6 pb-[30px] pt-[18px] text-[13.5px] text-muted-foreground">
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span>© {{ year }} {{ brandName }}</span>
-          <a href="https://github.com/dujiao-next" target="_blank" rel="noopener noreferrer" aria-label="Dujiao-Next on GitHub" class="inline-flex items-center gap-1.5 hover:text-primary">
-            <Github class="h-[15px] w-[15px]" />
-            <span>Dujiao-Next</span>
-          </a>
+          <span class="font-semibold tracking-[0.08em] text-[#8f9992]">AI SUBSCRIPTION SERVICE</span>
         </div>
         <span>简体中文 · 繁體 · English</span>
       </div>
@@ -139,7 +137,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  Search, Moon, Sun, ShoppingCart, Languages, Menu, X, User, Info, ClipboardList, LogOut, Github,
+  Search, Moon, Sun, ShoppingCart, Languages, Menu, X, User, Info, ClipboardList, LogOut,
   LayoutGrid, Send, MessageCircle,
 } from 'lucide-vue-next'
 import { useAppStore } from '../../../stores/app'

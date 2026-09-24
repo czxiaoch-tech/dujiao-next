@@ -79,42 +79,21 @@
 
     <!-- ==================== 卡片模式（默认） ==================== -->
     <template v-else>
-      <!-- 分类块 -->
-      <section v-if="topCategories.length" class="mx-auto w-full max-w-[1180px] px-4 pb-4 pt-10 sm:px-6">
-        <div class="vault-section-label">SERVICE INDEX / 01</div>
-        <div class="mb-[22px] flex flex-wrap items-end justify-between gap-4">
-          <h2 class="text-[30px] font-black">{{ t('vault.categoriesTitle') }}</h2>
-          <Button as-child variant="ghost" size="sm" class="rounded-full"><RouterLink to="/products">{{ t('vault.allCategories') }} <ChevronRight /></RouterLink></Button>
-        </div>
-        <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(150px,1fr))]">
-          <RouterLink
-            v-for="(cat, idx) in topCategories"
-            :key="cat.id"
-            class="relative flex min-h-[116px] flex-col justify-between gap-2.5 overflow-hidden rounded-[14px] border border-black/5 p-[18px] transition hover:-translate-y-[3px] hover:shadow-[var(--shadow)]"
-            :class="catColor(idx)"
-            :to="`/categories/${cat.slug}`"
-          >
-            <span class="grid h-10 w-10 place-items-center rounded-xl bg-white/20">
-              <img v-if="cat.icon" :src="getImageUrl(cat.icon)" :alt="catName(cat)" loading="lazy" class="h-6 w-6 object-contain" />
-              <Tag v-else class="h-[22px] w-[22px]" />
-            </span>
-            <div class="min-w-0"><div class="line-clamp-2 break-words font-bold">{{ catName(cat) }}</div></div>
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- 热门商品 -->
-      <section class="mx-auto w-full max-w-[1180px] px-4 py-10 sm:px-6">
-        <div class="vault-section-label">AVAILABLE ACCESS / 02</div>
-        <div class="mb-[22px] flex flex-wrap items-end justify-between gap-4">
-          <h2 class="text-[30px] font-black">{{ t('home.featured.title') }}</h2>
+      <!-- 商品优先：第一屏先进入购买信息 -->
+      <section class="mx-auto w-full max-w-[1180px] px-4 pb-6 pt-7 sm:px-6">
+        <div class="vault-section-label">AVAILABLE ACCESS / 01</div>
+        <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 class="text-[30px] font-black">{{ t('home.featured.title') }}</h2>
+            <p class="mt-1 text-sm text-muted-foreground">价格、库存、履约状态直接展示，减少购买前的信息查找。</p>
+          </div>
           <Button as-child variant="outline" size="sm" class="rounded-full"><RouterLink to="/products">{{ t('home.featured.viewAll') }}</RouterLink></Button>
         </div>
 
         <div v-if="productsLoading" class="vault-product-grid">
-          <div v-for="i in 10" :key="i" class="h-[280px] rounded-lg border bg-card"></div>
+          <div v-for="i in 10" :key="i" class="h-[280px] rounded-[14px] border bg-card"></div>
         </div>
-        <div v-else-if="products.length" class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(228px,1fr))]">
+        <div v-else-if="products.length" class="vault-product-grid">
           <VaultProductCard
             v-for="(product, idx) in products"
             :key="product.id"
@@ -123,9 +102,33 @@
             @quick-buy="openQuickBuy"
           />
         </div>
-        <div v-else class="flex flex-col items-center gap-3 rounded-lg border border-dashed py-14 text-center text-muted-foreground">
-          <PackageOpen class="h-12 w-12 opacity-60" />
+        <div v-else class="flex flex-col items-center gap-3 rounded-[14px] border border-dashed py-10 text-center text-muted-foreground">
+          <PackageOpen class="h-10 w-10 opacity-55" />
           <p>{{ t('home.featured.empty') }}</p>
+        </div>
+      </section>
+
+      <!-- 分类退居商品之后，作为继续浏览入口 -->
+      <section v-if="topCategories.length" class="mx-auto w-full max-w-[1180px] px-4 pb-5 pt-6 sm:px-6">
+        <div class="vault-section-label">SERVICE INDEX / 02</div>
+        <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
+          <h2 class="text-[26px] font-black">{{ t('vault.categoriesTitle') }}</h2>
+          <Button as-child variant="ghost" size="sm" class="rounded-full"><RouterLink to="/products">{{ t('vault.allCategories') }} <ChevronRight /></RouterLink></Button>
+        </div>
+        <div class="grid gap-3 grid-cols-[repeat(auto-fill,minmax(150px,1fr))]">
+          <RouterLink
+            v-for="(cat, idx) in topCategories"
+            :key="cat.id"
+            class="relative flex min-h-[94px] flex-col justify-between gap-2 overflow-hidden rounded-[12px] border border-black/5 p-4 transition hover:-translate-y-[2px] hover:shadow-[var(--shadow-sm)]"
+            :class="catColor(idx)"
+            :to="`/categories/${cat.slug}`"
+          >
+            <span class="grid h-8 w-8 place-items-center rounded-[8px] bg-white/20">
+              <img v-if="cat.icon" :src="getImageUrl(cat.icon)" :alt="catName(cat)" loading="lazy" class="h-5 w-5 object-contain" />
+              <Tag v-else class="h-[18px] w-[18px]" />
+            </span>
+            <div class="min-w-0"><div class="line-clamp-2 break-words text-sm font-bold">{{ catName(cat) }}</div></div>
+          </RouterLink>
         </div>
       </section>
 

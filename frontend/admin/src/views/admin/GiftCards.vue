@@ -140,8 +140,9 @@ watch(() => generateForm.productId, async (rawID) => {
     // 商品列表中的数据仍可作为兜底。
   }
   const skus = activeSKUOptions.value
-  if (skus.length === 1) {
-    generateForm.skuId = String(skus[0].id)
+  const onlySKU = skus.length === 1 ? skus[0] : undefined
+  if (onlySKU) {
+    generateForm.skuId = String(onlySKU.id)
   }
 })
 

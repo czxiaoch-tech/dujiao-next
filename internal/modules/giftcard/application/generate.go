@@ -13,23 +13,40 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Generate 生成礼品卡批次。
+// Generate 生成余额礼品卡或产品兑换码批次。
 func (s *Service) Generate(input GenerateInput) (*giftcarddomain.GiftCardBatch, int, error) {
 	if s == nil || s.repo == nil {
 		return nil, 0, giftcardcontract.ErrCreateFailed
 	}
 
 	name := strings.TrimSpace(input.Name)
-	if name == "" {
+	if name == "" || input.Quantity <= 0 || input.Quantity > 10000 {
 		return nil, 0, giftcardcontract.ErrInvalid
 	}
-	if input.Quantity <= 0 || input.Quantity > 10000 {
-		return nil, 0, giftcardcontract.ErrInvalid
-	}
+
+	redeemType := normalizeRedeemType(input.RedeemType)
 	amount := input.Amount.Decimal.Round(2)
-	if amount.LessThanOrEqual(decimal.Zero) {
+	var productID *uint
+	var skuID *uint
+	switch redeemType {
+	case giftcarddomain.GiftCardRedeemTypeWallet:
+		if amount.LessThanOrEqual(decimal.Zero) {
+			return nil, 0, giftcardcontract.ErrInvalid
+		}
+	case giftcarddomain.GiftCardRedeemTypeProduct:
+		product, sku, err := s.resolveProductTarget(input.ProductID, input.SKUID)
+		if err != nil || product == nil || sku == nil {
+			return nil, 0, giftcardcontract.ErrInvalid
+		}
+		pid := product.ID
+		sid := sku.ID
+		productID = &pid
+		skuID = &sid
+		amount = decimal.Zero
+	default:
 		return nil, 0, giftcardcontract.ErrInvalid
 	}
+
 	currency := constants.SiteCurrencyDefault
 	if s.currency != nil {
 		if value := strings.TrimSpace(s.currency.SiteCurrency()); value != "" {
@@ -53,14 +70,17 @@ func (s *Service) Generate(input GenerateInput) (*giftcarddomain.GiftCardBatch, 
 	cards := make([]giftcarddomain.GiftCard, 0, input.Quantity)
 	for i := 0; i < input.Quantity; i++ {
 		cards = append(cards, giftcarddomain.GiftCard{
-			Name:      name,
-			Code:      generateCode(now, i),
-			Amount:    money.FromDecimal(amount),
-			Currency:  currency,
-			Status:    giftcarddomain.GiftCardStatusActive,
-			ExpiresAt: normalizeExpireAt(input.ExpiresAt),
-			CreatedAt: now,
-			UpdatedAt: now,
+			Name:       name,
+			Code:       generateCode(now, i),
+			Amount:     money.FromDecimal(amount),
+			Currency:   currency,
+			RedeemType: redeemType,
+			ProductID:  productID,
+			SKUID:      skuID,
+			Status:     giftcarddomain.GiftCardStatusActive,
+			ExpiresAt:  normalizeExpireAt(input.ExpiresAt),
+			CreatedAt:  now,
+			UpdatedAt:  now,
 		})
 	}
 
@@ -75,6 +95,5 @@ func (s *Service) Generate(input GenerateInput) (*giftcarddomain.GiftCardBatch, 
 		}
 		return nil, 0, giftcardcontract.ErrCreateFailed
 	}
-
 	return batch, input.Quantity, nil
 }

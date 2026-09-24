@@ -8,6 +8,8 @@ import (
 	userdomain "github.com/dujiao-next/internal/modules/identity/user/domain"
 
 	giftcarddomain "github.com/dujiao-next/internal/modules/giftcard/domain"
+	orderdomain "github.com/dujiao-next/internal/modules/order/domain"
+	"github.com/dujiao-next/internal/shared/jsonmap"
 	"github.com/dujiao-next/internal/shared/money"
 )
 
@@ -31,6 +33,7 @@ type ListFilter struct {
 type Repository interface {
 	CreateBatch(batch *giftcarddomain.GiftCardBatch, cards []giftcarddomain.GiftCard) error
 	GetByID(id uint) (*giftcarddomain.GiftCard, error)
+	GetByCode(code string) (*giftcarddomain.GiftCard, error)
 	List(filter ListFilter) ([]giftcarddomain.GiftCard, int64, error)
 	ListByIDs(ids []uint) ([]giftcarddomain.GiftCard, error)
 	Update(card *giftcarddomain.GiftCard) error
@@ -51,10 +54,19 @@ type WalletCreditInput struct {
 }
 
 // RedeemTransaction 是礼品卡与钱包共享事务内的最小能力集合。
+type ProductOrderInput struct {
+	UserID         uint
+	ProductID      uint
+	SKUID          uint
+	Currency       string
+	ManualFormData jsonmap.JSON
+}
+
 type RedeemTransaction interface {
 	GetByCodeForUpdate(code string) (*giftcarddomain.GiftCard, error)
 	UpdateCard(card *giftcarddomain.GiftCard) error
 	CreditWallet(input WalletCreditInput) (*walletdomain.Account, *walletdomain.Transaction, error)
+	CreateProductOrder(input ProductOrderInput) (*orderdomain.Order, error)
 }
 
 // RedeemTransactionRunner 保证礼品卡状态与钱包入账原子提交或回滚。

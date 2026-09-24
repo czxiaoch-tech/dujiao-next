@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   adminAPI,
   type AdminBatchGiftCardStatusPayload,
   type AdminExportGiftCardsPayload,
+  type AdminGenerateGiftCardsPayload,
   type AdminGiftCardStatus,
   type AdminUpdateGiftCardPayload,
 } from '@/api/admin'
-import type { AdminGiftCard, AdminGiftCardBatch } from '@/api/types'
+import type { AdminGiftCard, AdminGiftCardBatch, AdminProduct, AdminProductSKU } from '@/api/types'
 import IdCell from '@/components/IdCell.vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -66,8 +67,83 @@ const generateError = ref('')
 const generateForm = reactive({
   name: '',
   quantity: 10,
+  redeemType: 'wallet' as 'wallet' | 'product',
   amount: '',
+  productId: '',
+  skuId: '',
   expiresAt: '',
+})
+const productOptions = ref<AdminProduct[]>([])
+const productOptionsLoading = ref(false)
+
+const localizedProductTitle = (product?: AdminProduct | null) => {
+  const title = product?.title || {}
+  return String(title['zh-CN'] || title['zh-TW'] || title['en-US'] || product?.slug || ('#' + String(product?.id || ''))).trim()
+}
+
+const selectedProduct = computed(() => {
+  const id = Number(generateForm.productId)
+  if (!Number.isFinite(id) || id <= 0) return null
+  return productOptions.value.find((item) => Number(item.id) === id) || null
+})
+
+const activeSKUOptions = computed<AdminProductSKU[]>(() => {
+  const list = selectedProduct.value?.skus
+  if (!Array.isArray(list)) return []
+  return list.filter((sku) => sku?.is_active !== false)
+})
+
+const skuOptionLabel = (sku: AdminProductSKU) => {
+  const values = sku?.spec_values || {}
+  const detail = Object.values(values).map((value) => String(value || '').trim()).filter(Boolean).join(' / ')
+  const code = String(sku?.sku_code || '').trim()
+  if (detail && code) return detail + ' · ' + code
+  return detail || code || ('SKU #' + String(sku.id))
+}
+
+const loadProductOptions = async () => {
+  productOptionsLoading.value = true
+  try {
+    const response = await adminAPI.getProducts({ page: 1, page_size: 100, fulfillment_type: 'manual', is_active: true })
+    const rows = Array.isArray(response?.data?.data) ? response.data.data : []
+    productOptions.value = rows.filter((item: AdminProduct) => item?.is_active !== false && String(item?.fulfillment_type || '').toLowerCase() === 'manual')
+  } catch {
+    productOptions.value = []
+  } finally {
+    productOptionsLoading.value = false
+  }
+}
+
+watch(() => generateForm.redeemType, (type) => {
+  generateError.value = ''
+  if (type === 'wallet') {
+    generateForm.productId = ''
+    generateForm.skuId = ''
+    return
+  }
+  generateForm.amount = ''
+})
+
+watch(() => generateForm.productId, async (rawID) => {
+  generateForm.skuId = ''
+  const id = Number(rawID)
+  if (!Number.isFinite(id) || id <= 0) return
+  try {
+    const response = await adminAPI.getProduct(id)
+    const detail = response?.data?.data as AdminProduct | undefined
+    if (detail?.id) {
+      const index = productOptions.value.findIndex((item) => Number(item.id) === Number(detail.id))
+      if (index >= 0) productOptions.value[index] = detail
+      else productOptions.value.push(detail)
+    }
+  } catch {
+    // 商品列表中的数据仍可作为兜底。
+  }
+  const skus = activeSKUOptions.value
+  const onlySKU = skus.length === 1 ? skus[0] : undefined
+  if (onlySKU) {
+    generateForm.skuId = String(onlySKU.id)
+  }
 })
 
 const showEditModal = ref(false)
@@ -309,7 +385,10 @@ const exportSelected = async (format: 'txt' | 'csv') => {
 const resetGenerateForm = () => {
   generateForm.name = ''
   generateForm.quantity = 10
+  generateForm.redeemType = 'wallet'
   generateForm.amount = ''
+  generateForm.productId = ''
+  generateForm.skuId = ''
   generateForm.expiresAt = ''
   generateError.value = ''
 }
@@ -317,6 +396,7 @@ const resetGenerateForm = () => {
 const openGenerateModal = () => {
   resetGenerateForm()
   showGenerateModal.value = true
+  void loadProductOptions()
 }
 
 const closeGenerateModal = () => {
@@ -332,10 +412,23 @@ const submitGenerate = async () => {
     return
   }
   const amount = String(generateForm.amount || '').trim()
-  const parsedAmount = Number(amount)
-  if (!amount || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-    generateError.value = t('admin.giftCards.errors.invalidAmount')
-    return
+  if (generateForm.redeemType === 'wallet') {
+    const parsedAmount = Number(amount)
+    if (!amount || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      generateError.value = t('admin.giftCards.errors.invalidAmount')
+      return
+    }
+  } else {
+    const productId = Number(generateForm.productId)
+    const skuId = Number(generateForm.skuId)
+    if (!Number.isFinite(productId) || productId <= 0) {
+      generateError.value = t('admin.giftCards.errors.productRequired')
+      return
+    }
+    if (!Number.isFinite(skuId) || skuId <= 0) {
+      generateError.value = t('admin.giftCards.errors.skuRequired')
+      return
+    }
   }
   if (!String(generateForm.name || '').trim()) {
     generateError.value = t('admin.giftCards.errors.nameRequired')
@@ -344,12 +437,19 @@ const submitGenerate = async () => {
 
   generateSubmitting.value = true
   try {
-    const response = await adminAPI.generateGiftCards({
+    const payload: AdminGenerateGiftCardsPayload = {
       name: generateForm.name.trim(),
       quantity: Math.floor(quantity),
-      amount,
+      redeem_type: generateForm.redeemType,
       expires_at: generateForm.expiresAt ? toISO(generateForm.expiresAt) : '',
-    })
+    }
+    if (generateForm.redeemType === 'product') {
+      payload.product_id = Number(generateForm.productId)
+      payload.sku_id = Number(generateForm.skuId)
+    } else {
+      payload.amount = amount
+    }
+    const response = await adminAPI.generateGiftCards(payload)
     const created = Number(response?.data?.data?.created || 0)
     const batchNo = String(response?.data?.data?.batch?.batch_no || '').trim()
     batchActionSuccess.value = batchNo
@@ -622,8 +722,46 @@ onMounted(() => {
               <Input v-model.number="generateForm.quantity" type="number" min="1" max="10000" />
             </div>
             <div class="space-y-2">
+              <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.redeemType') }}</label>
+              <Select v-model="generateForm.redeemType">
+                <SelectTrigger class="h-10 w-full">
+                  <SelectValue :placeholder="t('admin.giftCards.form.redeemType')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="wallet">{{ t('admin.giftCards.redeemType.wallet') }}</SelectItem>
+                  <SelectItem value="product">{{ t('admin.giftCards.redeemType.product') }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div v-if="generateForm.redeemType === 'wallet'" class="space-y-2">
               <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.amount') }}</label>
               <Input v-model="generateForm.amount" type="text" inputmode="decimal" />
+            </div>
+            <div v-else class="space-y-2 md:col-span-2">
+              <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.product') }}</label>
+              <Select v-model="generateForm.productId" :disabled="productOptionsLoading">
+                <SelectTrigger class="h-10 w-full">
+                  <SelectValue :placeholder="productOptionsLoading ? t('admin.common.loading') : t('admin.giftCards.form.productPlaceholder')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="product in productOptions" :key="product.id" :value="String(product.id)">
+                    {{ localizedProductTitle(product) }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div v-if="generateForm.redeemType === 'product'" class="space-y-2 md:col-span-2">
+              <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.sku') }}</label>
+              <Select v-model="generateForm.skuId" :disabled="!selectedProduct || activeSKUOptions.length === 0">
+                <SelectTrigger class="h-10 w-full">
+                  <SelectValue :placeholder="t('admin.giftCards.form.skuPlaceholder')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="sku in activeSKUOptions" :key="sku.id" :value="String(sku.id)">
+                    {{ skuOptionLabel(sku) }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div class="space-y-2">
               <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.expiresAt') }}</label>

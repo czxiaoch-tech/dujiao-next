@@ -933,20 +933,28 @@
     },
     "giftCard": {
       "title": "Gift Card Redeem",
-      "subtitle": "Enter your gift card code and the amount will be credited to wallet instantly",
-      "codeLabel": "Gift card code",
-      "codePlaceholder": "Enter gift card code",
-      "redeemButton": "Redeem now",
+      "subtitle": "Enter a code. Wallet cards add balance; product codes submit the linked service order directly",
+      "codeLabel": "Redemption code",
+      "codePlaceholder": "Enter redemption code",
+      "resolveButton": "Check code",
+      "resolving": "Checking...",
+      "redeemButton": "Confirm redemption",
       "redeeming": "Redeeming...",
       "resetButton": "Reset",
       "redeemSuccess": "Redeem successful, credited {amount} {currency}",
+      "productRedeemSuccess": "Redeemed successfully. Order {orderNo} was created",
       "successTitle": "Redeem successful",
-      "successCode": "Gift card code",
+      "productSuccessTitle": "Service order submitted",
+      "successCode": "Redemption code",
       "successAmount": "Credited amount",
       "successBalance": "Current balance",
+      "productTargetLabel": "Service",
+      "productOrderNo": "Order number",
       "errors": {
-        "codeRequired": "Please enter gift card code first",
-        "redeemFailed": "Failed to redeem gift card, please try again later"
+        "codeRequired": "Please enter a redemption code first",
+        "resolveFailed": "Could not resolve this code. Check it and try again",
+        "formRequired": "Complete the required service information",
+        "redeemFailed": "Redemption failed. Please try again later"
       }
     },
     "apiPanel": {

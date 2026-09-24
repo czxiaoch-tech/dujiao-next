@@ -50,8 +50,12 @@ func (s *Service) Export(ids []uint, format string) ([]byte, string, error) {
 		"code",
 		"amount",
 		"currency",
+		"redeem_type",
+		"product_id",
+		"sku_id",
 		"status",
 		"redeemed_user_id",
+		"redeemed_order_id",
 		"redeemed_at",
 		"expires_at",
 		"created_at",
@@ -67,6 +71,22 @@ func (s *Service) Export(ids []uint, format string) ([]byte, string, error) {
 		if card.RedeemedUserID != nil {
 			redeemedUserID = strconv.FormatUint(uint64(*card.RedeemedUserID), 10)
 		}
+		productID := ""
+		if card.ProductID != nil {
+			productID = strconv.FormatUint(uint64(*card.ProductID), 10)
+		}
+		skuID := ""
+		if card.SKUID != nil {
+			skuID = strconv.FormatUint(uint64(*card.SKUID), 10)
+		}
+		redeemedOrderID := ""
+		if card.RedeemedOrderID != nil {
+			redeemedOrderID = strconv.FormatUint(uint64(*card.RedeemedOrderID), 10)
+		}
+		redeemType := strings.TrimSpace(card.RedeemType)
+		if redeemType == "" {
+			redeemType = "wallet"
+		}
 		record := []string{
 			strconv.FormatUint(uint64(card.ID), 10),
 			batchNo,
@@ -74,8 +94,12 @@ func (s *Service) Export(ids []uint, format string) ([]byte, string, error) {
 			card.Code,
 			card.Amount.String(),
 			card.Currency,
+			redeemType,
+			productID,
+			skuID,
 			card.Status,
 			redeemedUserID,
+			redeemedOrderID,
 			formatNullableTime(card.RedeemedAt),
 			formatNullableTime(card.ExpiresAt),
 			card.CreatedAt.Format(time.RFC3339),

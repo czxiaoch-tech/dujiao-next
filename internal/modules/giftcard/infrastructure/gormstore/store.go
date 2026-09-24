@@ -77,6 +77,22 @@ func (r *Store) GetByID(id uint) (*giftcarddomain.GiftCard, error) {
 	return &card, nil
 }
 
+// GetByCode 根据卡密查询礼品卡，不消耗卡密。
+func (r *Store) GetByCode(code string) (*giftcarddomain.GiftCard, error) {
+	code = strings.TrimSpace(strings.ToUpper(code))
+	if code == "" {
+		return nil, nil
+	}
+	var card giftcarddomain.GiftCard
+	if err := r.db.Where("deleted_at IS NULL AND code = ?", code).First(&card).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &card, nil
+}
+
 // GetByCodeForUpdate 根据卡密加锁查询礼品卡。
 func (r *Store) GetByCodeForUpdate(code string) (*giftcarddomain.GiftCard, error) {
 	code = strings.TrimSpace(strings.ToUpper(code))

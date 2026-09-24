@@ -15,6 +15,7 @@ import (
 	giftcardpresenter "github.com/dujiao-next/internal/modules/giftcard/transport/presenter"
 	"github.com/dujiao-next/internal/platform/http/ginutil"
 	"github.com/dujiao-next/internal/platform/http/response"
+	"github.com/dujiao-next/internal/shared/jsonmap"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +27,8 @@ type CaptchaVerifier interface {
 
 // UserService 是用户侧礼品卡兑换端口。
 type UserService interface {
+	ResolveGiftCard(code string) (*giftcardapp.ResolveResult, error)
+	RedeemCode(input giftcardapp.RedeemInput) (*giftcardapp.RedeemResult, error)
 	RedeemGiftCard(input giftcardapp.RedeemInput) (*giftcarddomain.GiftCard, *walletdomain.Account, *walletdomain.Transaction, error)
 }
 
@@ -42,9 +45,31 @@ func NewUserHandler(cards UserService, captcha CaptchaVerifier) *UserHandler {
 	return &UserHandler{cards: cards, captcha: captcha}
 }
 
+type resolveRequest struct {
+	Code string `json:"code" binding:"required"`
+}
+
 type redeemRequest struct {
 	Code           string                            `json:"code" binding:"required"`
+	ManualFormData jsonmap.JSON                      `json:"manual_form_data"`
 	CaptchaPayload captchahttp.CaptchaPayloadRequest `json:"captcha_payload"`
+}
+
+func (h *UserHandler) Resolve(c *gin.Context) {
+	if _, ok := ginutil.GetUserID(c); !ok {
+		return
+	}
+	var req resolveRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginutil.RespondBindError(c, err)
+		return
+	}
+	result, err := h.cards.ResolveGiftCard(strings.TrimSpace(req.Code))
+	if err != nil {
+		respondUserGiftCardError(c, err)
+		return
+	}
+	response.Success(c, giftcardpresenter.NewGiftCardResolveResp(result))
 }
 
 // Redeem 用户兑换礼品卡。
@@ -64,15 +89,16 @@ func (h *UserHandler) Redeem(c *gin.Context) {
 			return
 		}
 	}
-	card, account, txn, err := h.cards.RedeemGiftCard(giftcardapp.RedeemInput{
-		UserID: uid,
-		Code:   strings.TrimSpace(req.Code),
+	result, err := h.cards.RedeemCode(giftcardapp.RedeemInput{
+		UserID:         uid,
+		Code:           strings.TrimSpace(req.Code),
+		ManualFormData: req.ManualFormData,
 	})
 	if err != nil {
 		respondUserGiftCardError(c, err)
 		return
 	}
-	response.Success(c, giftcardpresenter.NewGiftCardRedeemResp(card, account, txn))
+	response.Success(c, giftcardpresenter.NewUserGiftCardRedeemResp(result))
 }
 
 func respondCaptchaError(c *gin.Context, err error) {

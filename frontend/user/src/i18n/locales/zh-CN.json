@@ -886,20 +886,28 @@
     },
     "giftCard": {
       "title": "礼品卡兑换",
-      "subtitle": "输入礼品卡卡密，金额将即时充入钱包余额",
-      "codeLabel": "礼品卡卡密",
-      "codePlaceholder": "请输入礼品卡卡密",
-      "redeemButton": "立即兑换",
+      "subtitle": "输入兑换码；余额卡直接入账，产品码直接提交对应服务订单",
+      "codeLabel": "兑换码",
+      "codePlaceholder": "请输入兑换码",
+      "resolveButton": "识别兑换码",
+      "resolving": "识别中...",
+      "redeemButton": "确认兑换",
       "redeeming": "兑换中...",
       "resetButton": "重置",
       "redeemSuccess": "兑换成功，已到账 {amount} {currency}",
+      "productRedeemSuccess": "兑换成功，已生成订单 {orderNo}",
       "successTitle": "兑换成功",
-      "successCode": "礼品卡卡密",
+      "productSuccessTitle": "服务订单已提交",
+      "successCode": "兑换码",
       "successAmount": "到账金额",
       "successBalance": "当前余额",
+      "productTargetLabel": "兑换服务",
+      "productOrderNo": "订单号",
       "errors": {
-        "codeRequired": "请先输入礼品卡卡密",
-        "redeemFailed": "礼品卡兑换失败，请稍后重试"
+        "codeRequired": "请先输入兑换码",
+        "resolveFailed": "兑换码识别失败，请检查后重试",
+        "formRequired": "请完整填写服务所需信息",
+        "redeemFailed": "兑换失败，请稍后重试"
       }
     },
     "apiPanel": {

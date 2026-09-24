@@ -22,6 +22,7 @@ import (
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/common"
+	"github.com/dujiao-next/internal/shared/netguard"
 
 	"github.com/shopspring/decimal"
 )
@@ -490,7 +491,7 @@ func postGateway(ctx context.Context, gatewayURL string, params map[string]strin
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset="+alipayReqCharset)
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := netguard.NewHTTPClient(0).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: http request failed", ErrRequestFailed)
 	}

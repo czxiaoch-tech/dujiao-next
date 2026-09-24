@@ -1,6 +1,9 @@
 package application
 
-import giftcardcontract "github.com/dujiao-next/internal/modules/giftcard/contract"
+import (
+	productcontract "github.com/dujiao-next/internal/modules/catalog/product/contract"
+	giftcardcontract "github.com/dujiao-next/internal/modules/giftcard/contract"
+)
 
 // Service 礼品卡管理用例（不含兑换写路径）。
 type Service struct {
@@ -8,6 +11,8 @@ type Service struct {
 	users    giftcardcontract.UserDirectory
 	currency giftcardcontract.CurrencyProvider
 	redeemer giftcardcontract.RedeemTransactionRunner
+	products productcontract.Repository
+	skus     productcontract.SKURepository
 }
 
 // Options 组装管理用例依赖。
@@ -16,6 +21,8 @@ type Options struct {
 	Users    giftcardcontract.UserDirectory
 	Currency giftcardcontract.CurrencyProvider
 	Redeemer giftcardcontract.RedeemTransactionRunner
+	Products productcontract.Repository
+	SKUs     productcontract.SKURepository
 }
 
 func NewService(opts Options) *Service {
@@ -27,5 +34,7 @@ func NewService(opts Options) *Service {
 		users:    opts.Users,
 		currency: opts.Currency,
 		redeemer: opts.Redeemer,
+		products: opts.Products,
+		skus:     opts.SKUs,
 	}
 }

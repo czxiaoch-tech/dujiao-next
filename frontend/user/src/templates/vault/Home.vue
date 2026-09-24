@@ -81,7 +81,7 @@
     <template v-else>
       <!-- 商品优先：第一屏先进入购买信息 -->
       <section class="mx-auto w-full max-w-[1180px] px-4 pb-6 pt-7 sm:px-6">
-        <div class="vault-section-label">AVAILABLE ACCESS / 01</div>
+        <div class="vault-section-label">精选商品 / 01</div>
         <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 class="text-[30px] font-black">{{ t('home.featured.title') }}</h2>
@@ -110,7 +110,7 @@
 
       <!-- 分类退居商品之后，作为继续浏览入口 -->
       <section v-if="topCategories.length" class="mx-auto w-full max-w-[1180px] px-4 pb-5 pt-6 sm:px-6">
-        <div class="vault-section-label">SERVICE INDEX / 02</div>
+        <div class="vault-section-label">商品分类 / 02</div>
         <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
           <h2 class="text-[26px] font-black">{{ t('vault.categoriesTitle') }}</h2>
           <Button as-child variant="ghost" size="sm" class="rounded-full"><RouterLink to="/products">{{ t('vault.allCategories') }} <ChevronRight /></RouterLink></Button>
@@ -134,7 +134,7 @@
 
       <!-- 最新动态 -->
       <section v-if="latestVisible && posts.length" class="mx-auto w-full max-w-[1180px] px-4 py-10 sm:px-6">
-        <div class="vault-section-label">UPDATES / 03</div>
+        <div class="vault-section-label">最新动态 / 03</div>
         <div class="mb-[22px] flex flex-wrap items-end justify-between gap-4">
           <h2 class="text-[30px] font-black">{{ t('home.latest.title') }}</h2>
         </div>

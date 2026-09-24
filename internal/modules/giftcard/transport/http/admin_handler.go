@@ -44,10 +44,13 @@ func NewAdminHandler(cards AdminService) *AdminHandler {
 }
 
 type generateRequest struct {
-	Name      string `json:"name" binding:"required"`
-	Quantity  int    `json:"quantity" binding:"required"`
-	Amount    string `json:"amount" binding:"required"`
-	ExpiresAt string `json:"expires_at"`
+	Name       string `json:"name" binding:"required"`
+	Quantity   int    `json:"quantity" binding:"required"`
+	Amount     string `json:"amount"`
+	RedeemType string `json:"redeem_type"`
+	ProductID  uint   `json:"product_id"`
+	SKUID      uint   `json:"sku_id"`
+	ExpiresAt  string `json:"expires_at"`
 }
 
 type updateRequest struct {
@@ -89,10 +92,14 @@ func (h *AdminHandler) Generate(c *gin.Context) {
 		ginutil.RespondBindError(c, err)
 		return
 	}
-	amount, err := decimal.NewFromString(strings.TrimSpace(req.Amount))
-	if err != nil {
-		ginutil.RespondError(c, response.CodeBadRequest, "error.bad_request", err)
-		return
+	amount := decimal.Zero
+	if rawAmount := strings.TrimSpace(req.Amount); rawAmount != "" {
+		parsed, err := decimal.NewFromString(rawAmount)
+		if err != nil {
+			ginutil.RespondError(c, response.CodeBadRequest, "error.bad_request", err)
+			return
+		}
+		amount = parsed
 	}
 	expiresAt, err := ginutil.ParseTimeNullable(strings.TrimSpace(req.ExpiresAt))
 	if err != nil {
@@ -100,11 +107,14 @@ func (h *AdminHandler) Generate(c *gin.Context) {
 		return
 	}
 	batch, created, err := h.cards.Generate(giftcardapp.GenerateInput{
-		Name:      req.Name,
-		Quantity:  req.Quantity,
-		Amount:    money.FromDecimal(amount),
-		ExpiresAt: expiresAt,
-		CreatedBy: &adminID,
+		Name:       req.Name,
+		Quantity:   req.Quantity,
+		Amount:     money.FromDecimal(amount),
+		RedeemType: req.RedeemType,
+		ProductID:  req.ProductID,
+		SKUID:      req.SKUID,
+		ExpiresAt:  expiresAt,
+		CreatedBy:  &adminID,
 	})
 	if err != nil {
 		switch {

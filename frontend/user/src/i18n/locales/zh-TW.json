@@ -933,20 +933,28 @@
     },
     "giftCard": {
       "title": "禮品卡兌換",
-      "subtitle": "輸入禮品卡卡密，金額將即時充入錢包餘額",
-      "codeLabel": "禮品卡卡密",
-      "codePlaceholder": "請輸入禮品卡卡密",
-      "redeemButton": "立即兌換",
+      "subtitle": "輸入兌換碼；餘額卡直接入帳，產品碼直接提交對應服務訂單",
+      "codeLabel": "兌換碼",
+      "codePlaceholder": "請輸入兌換碼",
+      "resolveButton": "識別兌換碼",
+      "resolving": "識別中...",
+      "redeemButton": "確認兌換",
       "redeeming": "兌換中...",
       "resetButton": "重置",
       "redeemSuccess": "兌換成功，已到帳 {amount} {currency}",
+      "productRedeemSuccess": "兌換成功，已生成訂單 {orderNo}",
       "successTitle": "兌換成功",
-      "successCode": "禮品卡卡密",
+      "productSuccessTitle": "服務訂單已提交",
+      "successCode": "兌換碼",
       "successAmount": "到帳金額",
       "successBalance": "目前餘額",
+      "productTargetLabel": "兌換服務",
+      "productOrderNo": "訂單號",
       "errors": {
-        "codeRequired": "請先輸入禮品卡卡密",
-        "redeemFailed": "禮品卡兌換失敗，請稍後重試"
+        "codeRequired": "請先輸入兌換碼",
+        "resolveFailed": "兌換碼識別失敗，請檢查後重試",
+        "formRequired": "請完整填寫服務所需資訊",
+        "redeemFailed": "兌換失敗，請稍後重試"
       }
     },
     "apiPanel": {

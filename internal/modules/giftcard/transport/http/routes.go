@@ -3,6 +3,7 @@ package giftcardhttp
 import "github.com/gin-gonic/gin"
 
 func RegisterUserRoutes(user gin.IRoutes, handler *UserHandler) {
+	user.POST("/gift-cards/resolve", handler.Resolve)
 	user.POST("/gift-cards/redeem", handler.Redeem)
 }
 

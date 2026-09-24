@@ -1,17 +1,17 @@
 package upstreamhttp
 
 import (
+	"context"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
 	"github.com/dujiao-next/internal/logger"
 	procurementcontract "github.com/dujiao-next/internal/modules/procurement/contract"
 	"github.com/dujiao-next/internal/shared/jsonmap"
+	"github.com/dujiao-next/internal/shared/netguard"
 	upstreamadapter "github.com/dujiao-next/internal/upstream"
 
 	"github.com/gin-gonic/gin"
@@ -199,28 +199,5 @@ func mapCallbackStatus(status string) string {
 // mapOrderErrorToResponse 将订单创建错误映射为上游 API 错误响应
 // validateCallbackURL 验证回调 URL 的安全性（防止 SSRF）
 func validateCallbackURL(rawURL string) error {
-	parsed, err := url.Parse(rawURL)
-	if err != nil {
-		return fmt.Errorf("invalid url format")
-	}
-	scheme := strings.ToLower(parsed.Scheme)
-	if scheme != "http" && scheme != "https" {
-		return fmt.Errorf("callback url must use http or https")
-	}
-	host := parsed.Hostname()
-	if host == "" {
-		return fmt.Errorf("callback url must have a host")
-	}
-	// 禁止 localhost 和回环地址
-	if host == "localhost" || host == "127.0.0.1" || host == "::1" || host == "0.0.0.0" {
-		return fmt.Errorf("callback url must not point to localhost")
-	}
-	// 检查是否是内网 IP
-	ip := net.ParseIP(host)
-	if ip != nil {
-		if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
-			return fmt.Errorf("callback url must not point to private network")
-		}
-	}
-	return nil
+	return netguard.ValidatePublicHTTPURL(context.Background(), rawURL)
 }

@@ -20,6 +20,7 @@ import (
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/common"
+	"github.com/dujiao-next/internal/shared/netguard"
 	"github.com/shopspring/decimal"
 )
 
@@ -386,7 +387,7 @@ func postForm(ctx context.Context, endpoint string, payload map[string]string) (
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := netguard.NewHTTPClient(10 * time.Second)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

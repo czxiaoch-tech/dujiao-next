@@ -1,7 +1,8 @@
+import DOMPurify from 'dompurify'
 import { getImageUrl } from './image'
 
 /**
- * 将 HTML 内容中的图片路径转换为显示用的绝对路径
+ * 将 HTML 内容中的图片路径转换为显示用的绝对路径，并在进入 v-html 前统一净化。
  * /uploads/xxx -> http://domain/uploads/xxx
  */
 export function processHtmlForDisplay(html: string): string {
@@ -9,8 +10,13 @@ export function processHtmlForDisplay(html: string): string {
 
     // 匹配 src="/uploads/..."，支持单引号和双引号
     // 使用非贪婪匹配 .*?
-    return html.replace(/src=["'](\/uploads\/.*?)["']/g, (_, path) => {
+    const displayHtml = html.replace(/src=["'](\/uploads\/.*?)["']/g, (_, path) => {
         return `src="${getImageUrl(path)}"`
+    })
+
+    // 商品、文章、Legal 等公开富文本统一从这里进入 v-html。
+    return DOMPurify.sanitize(displayHtml, {
+        USE_PROFILES: { html: true },
     })
 }
 

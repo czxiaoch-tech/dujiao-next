@@ -26,6 +26,7 @@ import (
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/common"
+	"github.com/dujiao-next/internal/shared/netguard"
 )
 
 const (
@@ -503,7 +504,7 @@ func postForm(ctx context.Context, endpoint string, params map[string]string) ([
 	req.Header.Set("Accept-Encoding", "identity")
 	req.Header.Set("Accept-Language", epayHeaderAcceptLanguage)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := netguard.NewHTTPClient(10 * time.Second)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

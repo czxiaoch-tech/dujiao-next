@@ -244,28 +244,31 @@ body.vault-tokens {
   letter-spacing: .01em;
 }
 
-/* Editorial home hero */
+/* Compact brand/service intro: identity remains distinctive,
+   but the first screen must move users into merchandise quickly. */
 .vault-home-hero {
   position: relative;
   overflow: hidden;
-  min-height: 380px;
+  min-height: 218px;
   border: 1px solid var(--border);
-  border-radius: 22px;
-  background: #12161a;
+  border-radius: 18px;
+  background:
+    linear-gradient(108deg, #11161a 0%, #141a1e 70%, #182019 100%);
   color: #f6f7f3;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow);
 }
 
 .vault-home-hero::before {
   content: "";
   position: absolute;
-  inset: auto -8% -40% auto;
-  width: 44%;
-  aspect-ratio: 1;
+  right: -54px;
+  top: -62px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   background: var(--red);
+  opacity: .13;
   filter: blur(2px);
-  opacity: .92;
 }
 
 .vault-home-hero::after {
@@ -273,64 +276,88 @@ body.vault-tokens {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
-  background-size: 34px 34px;
-  mask-image: linear-gradient(90deg, #000, transparent 86%);
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(90deg, #000, transparent 92%);
   pointer-events: none;
 }
 
 .vault-hero-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  color: #c4cbc5;
-  font-size: 12px;
+  gap: 8px;
+  color: #b8c0ba;
+  font-size: 10.5px;
   font-weight: 900;
-  letter-spacing: .16em;
+  letter-spacing: .15em;
   text-transform: uppercase;
 }
 
 .vault-hero-eyebrow::before {
   content: "";
-  width: 26px;
+  width: 22px;
   height: 3px;
   border-radius: 99px;
   background: var(--red);
 }
 
 .vault-hero-title {
-  max-width: 760px;
+  max-width: 680px;
+  overflow: hidden;
   color: #fff !important;
-  font-size: clamp(42px, 7vw, 84px);
-  line-height: .92 !important;
-  letter-spacing: -.055em !important;
+  font-size: clamp(30px, 4.1vw, 44px);
+  line-height: 1 !important;
+  letter-spacing: -.042em !important;
+  text-overflow: ellipsis;
 }
 
 .vault-hero-copy {
-  max-width: 56ch;
+  max-width: 58ch;
   color: #b9c1bb;
-  font-size: 16px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .vault-hero-step {
   display: inline-flex;
+  min-height: 34px;
   align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 8px;
-  padding: 8px 11px;
-  background: rgba(255,255,255,.06);
-  color: #dce1dc;
-  font-size: 12px;
-  font-weight: 800;
+  gap: 7px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 7px;
+  padding: 0 9px;
+  background: rgba(255,255,255,.045);
+  color: #ccd2cd;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: .02em;
 }
 
 .vault-hero-step b {
   color: var(--red);
-  font-size: 11px;
-  letter-spacing: .1em;
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+
+.vault-hero-buy {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 8px;
+  padding: 0 14px;
+  background: var(--red);
+  color: var(--on-red);
+  font-size: 12px;
+  font-weight: 900;
+  transition: transform .18s ease, background-color .18s ease;
+}
+
+.vault-hero-buy:hover {
+  transform: translateY(-1px);
+  background: var(--red-strong);
 }
 
 /* Section language */
@@ -469,13 +496,13 @@ body.vault-tokens {
   .vault-scope { --gap-block: 44px; }
   .vault-topbar-shell { padding: 8px 8px 0; }
   .vault-topbar { min-height: 58px; border-radius: 14px; padding: 8px 9px 8px 12px; }
-  .vault-home-hero { min-height: 330px; border-radius: 16px; }
-  .vault-home-hero::before { width: 68%; right: -30%; bottom: -24%; }
+  .vault-home-hero { min-height: 196px; border-radius: 14px; }
+  .vault-home-hero::before { width: 150px; height: 150px; right: -60px; top: -54px; }
   .vault-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 
 @media (max-width: 620px) {
-  .vault-hero-title { font-size: clamp(38px, 14vw, 58px); }
+  .vault-hero-title { font-size: clamp(28px, 9vw, 38px); }
   .vault-product-grid { grid-template-columns: 1fr; }
 }
 

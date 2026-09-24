@@ -19,6 +19,7 @@ import (
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/common"
+	"github.com/dujiao-next/internal/shared/netguard"
 )
 
 const (
@@ -369,7 +370,7 @@ func CreatePayment(ctx context.Context, cfg *Config, input CreateInput, options 
 		req.Header.Set(key, value)
 	}
 
-	resp, err := (&http.Client{Timeout: common.DefaultTimeout}).Do(req)
+	resp, err := netguard.NewHTTPClient(common.DefaultTimeout).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrRequestFailed, err)
 	}

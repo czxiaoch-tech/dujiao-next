@@ -474,6 +474,134 @@ body.vault-tokens {
   background: var(--red-strong);
 }
 
+/* Shared inner-page visual language -------------------------------------- */
+.vault-detail-media {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #171c20;
+  box-shadow: var(--shadow-sm);
+}
+
+.vault-detail-buybox {
+  align-self: start;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.vault-detail-price {
+  border-color: var(--border);
+}
+
+.vault-primary-action {
+  border-radius: 9px !important;
+  background: #111418 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.vault-primary-action:hover {
+  background: #262c31 !important;
+}
+
+.dark .vault-primary-action {
+  background: var(--red) !important;
+  color: var(--on-red) !important;
+}
+
+.vault-secondary-action {
+  border-radius: 9px !important;
+  border-color: var(--border-strong) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.vault-auth-shell {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(155,229,90,.12), transparent 22rem);
+}
+
+.vault-auth-card {
+  border-radius: 16px !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.vault-auth-card input {
+  border-radius: 8px;
+}
+
+.vault-account-header {
+  border: 1px solid #252c31;
+  border-radius: 16px;
+  background: #11161a;
+  color: #f5f7f2;
+  box-shadow: var(--shadow);
+}
+
+.vault-account-header h1 {
+  color: #fff !important;
+}
+
+.vault-account-header .text-muted-foreground {
+  color: #aeb7b0 !important;
+}
+
+.vault-personal-nav {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.vault-personal-center [class*="rounded-xl"],
+.vault-personal-center [class*="rounded-2xl"] {
+  box-shadow: none;
+}
+
+.vault-redeem-shell .gift-card-panel-enter > div {
+  border-radius: 14px !important;
+  border-color: var(--border) !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.vault-redeem-shell .gift-card-panel-enter input {
+  min-height: 48px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.vault-redeem-shell .gift-card-panel-enter button {
+  border-radius: 8px;
+}
+
+.vault-redeem-shell .gift-card-panel-enter button[type="submit"] {
+  background: #111418;
+  color: #fff;
+  font-weight: 900;
+}
+
+.dark .vault-redeem-shell .gift-card-panel-enter button[type="submit"] {
+  background: var(--red);
+  color: var(--on-red);
+}
+
+.vault-gift-card-panel .gift-card-panel-enter {
+  animation-duration: .28s;
+}
+
+@media (max-width: 900px) {
+  .vault-detail-buybox {
+    padding: 17px;
+  }
+  .vault-account-header {
+    border-radius: 14px;
+  }
+}
+
 /* Footer: deliberate, brand-neutral, no upstream-product look */
 .vault-footer {
   margin-top: var(--gap-block);

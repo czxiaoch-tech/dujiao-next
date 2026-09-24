@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pb-8">
     <!-- 站长配置的横幅轮播（两种模式共用，顶部展示） -->
     <VaultBannerHero />
 
@@ -80,16 +80,17 @@
     <!-- ==================== 卡片模式（默认） ==================== -->
     <template v-else>
       <!-- 分类块 -->
-      <section v-if="topCategories.length" class="mx-auto w-full max-w-[1180px] px-4 py-9 sm:px-6">
+      <section v-if="topCategories.length" class="mx-auto w-full max-w-[1180px] px-4 pb-4 pt-10 sm:px-6">
+        <div class="vault-section-label">SERVICE INDEX / 01</div>
         <div class="mb-[22px] flex flex-wrap items-end justify-between gap-4">
-          <h2 class="text-[28px] font-extrabold">{{ t('vault.categoriesTitle') }}</h2>
+          <h2 class="text-[30px] font-black">{{ t('vault.categoriesTitle') }}</h2>
           <Button as-child variant="ghost" size="sm" class="rounded-full"><RouterLink to="/products">{{ t('vault.allCategories') }} <ChevronRight /></RouterLink></Button>
         </div>
         <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(150px,1fr))]">
           <RouterLink
             v-for="(cat, idx) in topCategories"
             :key="cat.id"
-            class="relative flex min-h-[116px] flex-col justify-between gap-2.5 overflow-hidden rounded-lg p-[18px] transition hover:-translate-y-[3px] hover:shadow-[var(--shadow)]"
+            class="relative flex min-h-[116px] flex-col justify-between gap-2.5 overflow-hidden rounded-[14px] border border-black/5 p-[18px] transition hover:-translate-y-[3px] hover:shadow-[var(--shadow)]"
             :class="catColor(idx)"
             :to="`/categories/${cat.slug}`"
           >
@@ -103,13 +104,14 @@
       </section>
 
       <!-- 热门商品 -->
-      <section class="mx-auto w-full max-w-[1180px] px-4 py-9 sm:px-6">
+      <section class="mx-auto w-full max-w-[1180px] px-4 py-10 sm:px-6">
+        <div class="vault-section-label">AVAILABLE ACCESS / 02</div>
         <div class="mb-[22px] flex flex-wrap items-end justify-between gap-4">
-          <h2 class="text-[28px] font-extrabold">{{ t('home.featured.title') }}</h2>
+          <h2 class="text-[30px] font-black">{{ t('home.featured.title') }}</h2>
           <Button as-child variant="outline" size="sm" class="rounded-full"><RouterLink to="/products">{{ t('home.featured.viewAll') }}</RouterLink></Button>
         </div>
 
-        <div v-if="productsLoading" class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(228px,1fr))]">
+        <div v-if="productsLoading" class="vault-product-grid">
           <div v-for="i in 10" :key="i" class="h-[280px] rounded-lg border bg-card"></div>
         </div>
         <div v-else-if="products.length" class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(228px,1fr))]">
@@ -128,15 +130,16 @@
       </section>
 
       <!-- 最新动态 -->
-      <section v-if="latestVisible && posts.length" class="mx-auto w-full max-w-[1180px] px-4 py-9 sm:px-6">
+      <section v-if="latestVisible && posts.length" class="mx-auto w-full max-w-[1180px] px-4 py-10 sm:px-6">
+        <div class="vault-section-label">UPDATES / 03</div>
         <div class="mb-[22px] flex flex-wrap items-end justify-between gap-4">
-          <h2 class="text-[28px] font-extrabold">{{ t('home.latest.title') }}</h2>
+          <h2 class="text-[30px] font-black">{{ t('home.latest.title') }}</h2>
         </div>
         <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(228px,1fr))]">
           <RouterLink
             v-for="post in posts"
             :key="post.id"
-            class="block h-full rounded-lg border bg-card p-[22px] transition hover:-translate-y-[3px] hover:border-hairline-strong hover:shadow-[var(--shadow)]"
+            class="block h-full rounded-[14px] border bg-card p-[22px] transition hover:-translate-y-[3px] hover:border-hairline-strong hover:shadow-[var(--shadow)]"
             :to="`/blog/${post.slug}`"
           >
             <span class="text-[12.5px] font-semibold text-muted-foreground">{{ formatDate(post.published_at) }}</span>
@@ -245,11 +248,11 @@ const posts = ref<any[]>([])
 const topCategories = ref<PublicCategory[]>([])
 
 const catColors = [
-  'bg-[color:var(--red)] text-white',
-  'bg-[color:var(--teal)] text-white',
-  'bg-[color:var(--plum)] text-white',
-  'bg-[color:var(--gold)] text-[color:var(--on-gold)]',
-  'bg-[color:var(--ink)] text-[color:var(--bg)]',
+  'bg-[#111418] text-white',
+  'bg-[color:var(--red)] text-[color:var(--on-red)]',
+  'bg-[color:var(--gold-soft)] text-foreground',
+  'bg-[color:var(--teal-soft)] text-foreground',
+  'bg-[color:var(--plum-soft)] text-foreground',
 ]
 const catColor = (idx: number) => catColors[idx % catColors.length]
 const catName = (cat: PublicCategory) => getLocalizedText(cat.name) || cat.slug || ''

@@ -12,7 +12,9 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/validators"
-	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
+		"github.com/dujiao-next/internal/shared/netguard"
+
+"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
 )
@@ -103,12 +105,9 @@ func (t acceptJSONRoundTripper) RoundTrip(req *http.Request) (*http.Response, er
 }
 
 func withAcceptJSONHTTPClient() core.ClientOption {
-	return option.WithHTTPClient(&http.Client{
-		Timeout: defaultTimeout,
-		Transport: acceptJSONRoundTripper{
-			base: http.DefaultTransport,
-		},
-	})
+	client := netguard.NewHTTPClient(defaultTimeout)
+	client.Transport = acceptJSONRoundTripper{base: client.Transport}
+	return option.WithHTTPClient(client)
 }
 
 func createWechatPayPublicKeyVerifier(cfg *Config) (auth.Verifier, error) {

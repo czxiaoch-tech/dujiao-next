@@ -258,7 +258,10 @@ export type AdminGiftCardStatus = 'active' | 'redeemed' | 'disabled'
 export interface AdminGenerateGiftCardsPayload {
   name: string
   quantity: number
-  amount: string
+  amount?: string
+  redeem_type?: 'wallet' | 'product'
+  product_id?: number
+  sku_id?: number
   expires_at?: string
 }
 

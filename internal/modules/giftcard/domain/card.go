@@ -12,15 +12,24 @@ const (
 	GiftCardStatusDisabled = "disabled"
 )
 
+const (
+	GiftCardRedeemTypeWallet  = "wallet"
+	GiftCardRedeemTypeProduct = "product"
+)
+
 // GiftCard 礼品卡
 type GiftCard struct {
 	ID             uint           `gorm:"primarykey" json:"id"`                                           // 主键
 	BatchID        *uint          `gorm:"index" json:"batch_id,omitempty"`                                // 批次ID
 	Name           string         `gorm:"type:varchar(120);not null" json:"name"`                         // 礼品卡名称
 	Code           string         `gorm:"type:varchar(80);uniqueIndex;not null" json:"code"`              // 卡密
-	Amount         money.Amount   `gorm:"type:decimal(20,2);not null" json:"amount"`                      // 面额
-	Currency       string         `gorm:"type:varchar(16);not null;default:'CNY'" json:"currency"`        // 币种
-	Status         string         `gorm:"type:varchar(24);index;not null;default:'active'" json:"status"` // 状态
+	Amount          money.Amount   `gorm:"type:decimal(20,2);not null" json:"amount"`                           // 面额（余额礼品卡有效）
+	Currency        string         `gorm:"type:varchar(16);not null;default:'CNY'" json:"currency"`             // 币种
+	RedeemType      string         `gorm:"type:varchar(24);index;not null;default:'wallet'" json:"redeem_type"` // 兑换类型（wallet/product）
+	ProductID       *uint          `gorm:"index" json:"product_id,omitempty"`                                  // 产品兑换码绑定商品
+	SKUID           *uint          `gorm:"column:sku_id;index" json:"sku_id,omitempty"`                        // 产品兑换码绑定 SKU
+	RedeemedOrderID *uint          `gorm:"index" json:"redeemed_order_id,omitempty"`                           // 产品兑换后生成订单
+	Status          string         `gorm:"type:varchar(24);index;not null;default:'active'" json:"status"`      // 状态
 	ExpiresAt      *time.Time     `gorm:"index" json:"expires_at"`                                        // 过期时间
 	RedeemedAt     *time.Time     `gorm:"index" json:"redeemed_at"`                                       // 兑换时间
 	RedeemedUserID *uint          `gorm:"index" json:"redeemed_user_id,omitempty"`                        // 兑换用户ID

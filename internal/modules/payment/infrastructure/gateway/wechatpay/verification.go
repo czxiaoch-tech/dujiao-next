@@ -80,6 +80,7 @@ func createAPIClientWithVerifier(
 	options := []core.ClientOption{
 		option.WithMerchantCredential(cfg.MerchantID, cfg.MerchantSerialNo, privateKey),
 		withResponseSignatureVerifier(verifier),
+		withAcceptJSONHTTPClient(),
 	}
 	options = append(options, extraOptions...)
 	client, err := core.NewClient(ctx, options...)

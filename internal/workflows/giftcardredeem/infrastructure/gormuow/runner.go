@@ -33,7 +33,13 @@ type Runner struct {
 	skus     *productgormstore.SKUStore
 }
 
-func New(
+// New 保留原余额礼品卡构造方式，避免影响既有调用与渠道兑换。
+func New(cards *gormstore.Store, wallet *walletapp.Service) *Runner {
+	return &Runner{cards: cards, wallet: wallet}
+}
+
+// NewWithProducts 为产品兑换码额外注入商品与 SKU 仓储。
+func NewWithProducts(
 	cards *gormstore.Store,
 	wallet *walletapp.Service,
 	products *productgormstore.ProductStore,
@@ -43,7 +49,7 @@ func New(
 }
 
 func (r *Runner) WithinRedeemTransaction(fn func(tx giftcardcontract.RedeemTransaction) error) error {
-	if r == nil || r.cards == nil || r.wallet == nil || r.products == nil || r.skus == nil {
+	if r == nil || r.cards == nil || r.wallet == nil {
 		return giftcardcontract.ErrFetchFailed
 	}
 	return r.cards.Transaction(func(tx *gorm.DB) error {

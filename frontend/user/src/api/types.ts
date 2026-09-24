@@ -149,15 +149,42 @@ export interface GiftCardData {
     code: string
     amount: string
     currency: string
+    redeem_type?: 'wallet' | 'product' | string
+    product_id?: number
+    sku_id?: number
+    redeemed_order_id?: number
     status: string
     redeemed_at?: string
 }
 
+export interface GiftCardProductTargetData {
+    product_id: number
+    sku_id: number
+    title: Record<string, string>
+    sku_snapshot?: Record<string, unknown>
+    manual_form_schema?: Record<string, any>
+}
+
+export interface GiftCardResolveResult {
+    redeem_type: 'wallet' | 'product' | string
+    name: string
+    amount: string
+    currency: string
+    product?: GiftCardProductTargetData
+}
+
+export interface GiftCardRedeemOrderData {
+    id: number
+    order_no: string
+    status: string
+}
+
 export interface GiftCardRedeemResult {
     gift_card: GiftCardData
-    wallet: WalletAccountData
-    transaction: WalletTransactionData
-    wallet_delta: string
+    wallet?: WalletAccountData
+    transaction?: WalletTransactionData
+    wallet_delta?: string
+    order?: GiftCardRedeemOrderData
 }
 
 export interface AffiliateDashboardData {

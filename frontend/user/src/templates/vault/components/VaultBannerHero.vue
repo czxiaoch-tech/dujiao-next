@@ -10,7 +10,7 @@
           v-if="!bannerLoading && heroImage"
           :src="heroImage"
           :key="heroImage"
-          :alt="heroTitle"
+          alt="人工智能订阅服务"
           class="absolute inset-0 h-full w-full object-cover opacity-[0.12] grayscale-[40%]"
         />
       </Transition>
@@ -19,7 +19,7 @@
         <div class="min-w-0 max-w-[760px]">
           <div class="vault-hero-eyebrow">人工智能订阅服务</div>
           <h1 class="vault-hero-title mt-3">
-            AI订阅服务
+            人工智能订阅服务
           </h1>
           <p class="vault-hero-copy mt-3">
             选择商品，完成兑换，进入履约。
@@ -70,9 +70,6 @@ const {
   bannerCount,
   showHeroSection,
   heroImage,
-  heroTitle,
-  heroSubtitle,
-  heroPrimaryButtonText,
   loadBanners,
   selectHeroBanner,
   onBannerTouchStart,

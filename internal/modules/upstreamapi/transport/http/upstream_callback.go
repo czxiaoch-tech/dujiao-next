@@ -2,7 +2,6 @@ package upstreamhttp
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"

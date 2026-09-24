@@ -708,8 +708,46 @@ onMounted(() => {
               <Input v-model.number="generateForm.quantity" type="number" min="1" max="10000" />
             </div>
             <div class="space-y-2">
+              <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.redeemType') }}</label>
+              <Select v-model="generateForm.redeemType">
+                <SelectTrigger class="h-10 w-full">
+                  <SelectValue :placeholder="t('admin.giftCards.form.redeemType')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="wallet">{{ t('admin.giftCards.redeemType.wallet') }}</SelectItem>
+                  <SelectItem value="product">{{ t('admin.giftCards.redeemType.product') }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div v-if="generateForm.redeemType === 'wallet'" class="space-y-2">
               <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.amount') }}</label>
               <Input v-model="generateForm.amount" type="text" inputmode="decimal" />
+            </div>
+            <div v-else class="space-y-2 md:col-span-2">
+              <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.product') }}</label>
+              <Select v-model="generateForm.productId" :disabled="productOptionsLoading">
+                <SelectTrigger class="h-10 w-full">
+                  <SelectValue :placeholder="productOptionsLoading ? t('admin.common.loading') : t('admin.giftCards.form.productPlaceholder')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="product in productOptions" :key="product.id" :value="String(product.id)">
+                    {{ localizedProductTitle(product) }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div v-if="generateForm.redeemType === 'product'" class="space-y-2 md:col-span-2">
+              <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.sku') }}</label>
+              <Select v-model="generateForm.skuId" :disabled="!selectedProduct || activeSKUOptions.length === 0">
+                <SelectTrigger class="h-10 w-full">
+                  <SelectValue :placeholder="t('admin.giftCards.form.skuPlaceholder')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="sku in activeSKUOptions" :key="sku.id" :value="String(sku.id)">
+                    {{ skuOptionLabel(sku) }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div class="space-y-2">
               <label class="text-xs font-medium text-muted-foreground">{{ t('admin.giftCards.form.expiresAt') }}</label>

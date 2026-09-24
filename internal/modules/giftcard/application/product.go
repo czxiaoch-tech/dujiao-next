@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/dujiao-next/internal/constants"
-	productcontract "github.com/dujiao-next/internal/modules/catalog/product/contract"
 	productdomain "github.com/dujiao-next/internal/modules/catalog/product/domain"
 	giftcardcontract "github.com/dujiao-next/internal/modules/giftcard/contract"
 	giftcarddomain "github.com/dujiao-next/internal/modules/giftcard/domain"
@@ -83,4 +82,3 @@ func (s *Service) resolveProductTarget(productID, skuID uint) (*productdomain.Pr
 	return product, sku, nil
 }
 
-var _ productcontract.Repository

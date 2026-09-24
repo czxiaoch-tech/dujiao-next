@@ -130,7 +130,7 @@ func (c *Container) initApplicationServices() {
 		Repo:     c.GiftCardRepo,
 		Users:    c.UserStore,
 		Currency: giftcardsettingscurrency.New(c.SettingService),
-		Redeemer: giftcardredeemgormuow.New(c.GiftCardRepo, c.WalletService, c.ProductRepo, c.ProductSKURepo),
+		Redeemer: giftcardredeemgormuow.NewWithProducts(c.GiftCardRepo, c.WalletService, c.ProductRepo, c.ProductSKURepo),
 		Products: c.ProductRepo,
 		SKUs:     c.ProductSKURepo,
 	})

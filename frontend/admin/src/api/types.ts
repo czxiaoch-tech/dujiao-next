@@ -261,6 +261,10 @@ export interface AdminGiftCard {
   code: string
   amount: number | string
   currency: string
+  redeem_type?: 'wallet' | 'product' | string
+  product_id?: number
+  sku_id?: number
+  redeemed_order_id?: number
   status: string
   expires_at?: string
   redeemed_at?: string

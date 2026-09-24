@@ -17,24 +17,24 @@
 
       <div class="relative z-[2] grid min-h-[218px] items-center gap-5 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_auto] md:px-8 md:py-7">
         <div class="min-w-0 max-w-[760px]">
-          <div class="vault-hero-eyebrow">AI MEMBERSHIP ACCESS</div>
+          <div class="vault-hero-eyebrow">人工智能订阅服务</div>
           <h1 class="vault-hero-title mt-3">
-            {{ heroTitle || 'AI 订阅服务' }}
+            AI订阅服务
           </h1>
           <p class="vault-hero-copy mt-3">
-            {{ heroSubtitle || '选择商品，完成兑换，进入履约。' }}
+            选择商品，完成兑换，进入履约。
           </p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2 md:max-w-[330px] md:justify-end">
-          <span class="vault-hero-step"><b>01</b> SELECT</span>
-          <span class="vault-hero-step"><b>02</b> REDEEM</span>
-          <span class="vault-hero-step"><b>03</b> FULFILL</span>
+          <span class="vault-hero-step"><b>01</b> 选择商品</span>
+          <span class="vault-hero-step"><b>02</b> 兑换产品码</span>
+          <span class="vault-hero-step"><b>03</b> 等待履约</span>
           <RouterLink
             to="/products"
             class="vault-hero-buy"
           >
-            {{ heroPrimaryButtonText || '查看商品' }}
+            查看商品
             <ArrowRight class="h-4 w-4" />
           </RouterLink>
         </div>

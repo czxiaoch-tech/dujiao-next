@@ -1,10 +1,10 @@
 <template>
   <RouterLink
     :to="`/products/${product.slug}`"
-    class="vault-pass-card"
+    class="vault-shop-card"
     :class="{ 'opacity-[0.68]': soldOut }"
   >
-    <div class="vault-pass-cover" :class="coverClass">
+    <div class="vault-shop-card-media" :class="coverClass">
       <img
         v-if="coverImage"
         :src="coverImage"
@@ -13,69 +13,42 @@
         class="absolute inset-0 h-full w-full object-cover"
         @error="imageErrored = true"
       />
-      <Package v-else class="absolute bottom-5 right-5 z-[2] h-14 w-14 text-white/75" />
-
-      <span class="vault-pass-index">PASS {{ String((index ?? 0) + 1).padStart(2, '0') }}</span>
-
-      <div v-if="!soldOut && product.tags && product.tags.length" class="absolute bottom-3 left-3 z-[3] flex max-w-[82%] flex-wrap gap-1.5">
-        <span
-          v-for="(tag, i) in product.tags.slice(0, 2)"
-          :key="i"
-          class="inline-flex max-w-full items-center truncate rounded-[6px] border border-white/15 bg-black/55 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white backdrop-blur"
-        >{{ tag }}</span>
-      </div>
+      <Package v-else class="relative z-[1] h-12 w-12 text-white/75" />
     </div>
 
     <div class="flex flex-1 flex-col p-4">
-      <div>
-        <div v-if="categoryName" class="mb-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-muted-foreground">{{ categoryName }}</div>
-        <h3 class="line-clamp-2 text-[18px] font-black leading-[1.18] tracking-[-0.025em]">{{ title }}</h3>
+      <h3 class="line-clamp-2 min-h-[44px] text-[17px] font-black leading-[1.3] tracking-[-0.02em]">
+        {{ title }}
+      </h3>
+
+      <div class="mt-3 vault-shop-price">
+        {{ formatPrice(displayPrice, siteCurrency) }}
       </div>
 
-      <div class="mt-3 flex flex-wrap gap-1.5">
-        <span class="inline-flex items-center gap-1 rounded-[6px] bg-[color:var(--teal-soft)] px-2 py-1 text-[10.5px] font-black text-[color:var(--teal-strong)]">
-          <component :is="product.fulfillment_type === 'auto' ? Zap : Pencil" class="h-3 w-3" />
+      <div class="mt-3 flex flex-wrap gap-2">
+        <span class="vault-shop-status bg-[color:var(--teal-soft)] text-[color:var(--teal-strong)]">
+          <component :is="product.fulfillment_type === 'auto' ? Zap : Pencil" class="h-3.5 w-3.5" />
           {{ getFulfillmentTypeLabel(product.fulfillment_type) }}
         </span>
-        <span class="inline-flex items-center gap-1 rounded-[6px] bg-secondary px-2 py-1 text-[10.5px] font-black text-muted-foreground">
-          <component :is="product.purchase_type === 'guest' ? UserPlus : Lock" class="h-3 w-3" />
-          {{ getPurchaseTypeLabel(product.purchase_type) }}
-        </span>
-        <span class="inline-flex items-center gap-1 rounded-[6px] px-2 py-1 text-[10.5px] font-black" :class="stockPill.tone">
-          <component :is="stockPill.icon" class="h-3 w-3" />
+        <span class="vault-shop-status" :class="stockPill.tone">
+          <component :is="stockPill.icon" class="h-3.5 w-3.5" />
           {{ stockPill.label }}
         </span>
       </div>
 
-      <div class="vault-pass-meta mt-4">
-        <span>AI ACCESS</span>
-        <span v-if="priceSignal" :class="priceSignal.tone" class="rounded-[5px] px-2 py-0.5 normal-case tracking-normal">{{ priceSignal.label }}</span>
-        <span v-else>READY</span>
-      </div>
-
-      <div class="mt-auto flex items-end justify-between gap-3 pt-4">
-        <div class="min-w-0">
-          <template v-if="promo">
-            <div class="vault-pass-price text-foreground">{{ formatPrice(getPromotionPriceAmount(product), siteCurrency) }}</div>
-            <div class="mt-0.5 text-xs font-bold text-muted-foreground line-through">{{ formatPrice(product.price_amount, siteCurrency) }}</div>
-          </template>
-          <div v-else class="vault-pass-price text-foreground">{{ formatPrice(product.price_amount, siteCurrency) }}</div>
-        </div>
-
-        <span v-if="soldOut" class="inline-flex min-h-[38px] items-center rounded-[8px] border px-3 text-xs font-black text-muted-foreground">
-          {{ t('products.stockStatus.outOfStock') }}
-        </span>
-        <button
-          v-else
-          type="button"
-          class="vault-pass-action"
-          :aria-label="t('products.quickBuyAria')"
-          @click.prevent.stop="$emit('quickBuy', product)"
-        >
-          <Zap class="h-3.5 w-3.5" />
-          {{ t('products.quickBuy') }}
-        </button>
-      </div>
+      <button
+        v-if="!soldOut"
+        type="button"
+        class="vault-shop-buy mt-4"
+        :aria-label="t('products.quickBuyAria')"
+        @click.prevent.stop="$emit('quickBuy', product)"
+      >
+        {{ t('products.quickBuy') }}
+        <ArrowRight class="h-4 w-4" />
+      </button>
+      <span v-else class="vault-shop-buy mt-4 cursor-not-allowed opacity-45">
+        {{ t('products.stockStatus.outOfStock') }}
+      </span>
     </div>
   </RouterLink>
 </template>
@@ -83,7 +56,7 @@
 <script setup lang="ts">
 import { computed, ref, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AlarmClock, Lock, Package, Pencil, UserPlus, XCircle, Zap } from 'lucide-vue-next'
+import { AlarmClock, ArrowRight, Package, Pencil, XCircle, Zap } from 'lucide-vue-next'
 import { getFirstImageUrl, getImageUrl } from '../../../utils/image'
 import { useLocalized, useProductLabels } from '../../../composables/useProduct'
 
@@ -94,24 +67,26 @@ defineEmits<{ quickBuy: [product: any] }>()
 const { t } = useI18n()
 const { getLocalizedText, siteCurrency, formatPrice } = useLocalized()
 const {
-  getStockStatusLabel, getPurchaseTypeLabel, getFulfillmentTypeLabel,
-  isSoldOut, hasPromotionPrice, getPromotionPriceAmount, hasWholesalePrices, hasPromotionRules,
+  getStockStatusLabel,
+  getFulfillmentTypeLabel,
+  isSoldOut,
+  hasPromotionPrice,
+  getPromotionPriceAmount,
 } = useProductLabels()
 
-// 封面渐变（对应原 cover-red/teal/plum/gold/ink）
 const covers = [
-  'bg-[linear-gradient(135deg,#7b74f2,var(--red))]',
-  'bg-[linear-gradient(135deg,#1cc0bf,var(--teal))]',
-  'bg-[linear-gradient(135deg,#9b6cf5,var(--plum))]',
-  'bg-[linear-gradient(135deg,#f7bd4e,var(--gold))]',
-  'bg-[linear-gradient(135deg,#3a3950,var(--ink))]',
+  'bg-[#161b20]',
+  'bg-[#22313a]',
+  'bg-[#283327]',
+  'bg-[#312d26]',
+  'bg-[#2d2936]',
 ]
 const coverClass = computed(() => covers[(props.index ?? 0) % covers.length])
 
 const title = computed(() => getLocalizedText(props.product?.title))
-const categoryName = computed(() => getLocalizedText(props.product?.category?.name))
 const soldOut = computed(() => isSoldOut(props.product))
 const promo = computed(() => hasPromotionPrice(props.product))
+const displayPrice = computed(() => promo.value ? getPromotionPriceAmount(props.product) : props.product.price_amount)
 
 const imageErrored = ref(false)
 const coverImage = computed(() => {
@@ -130,13 +105,5 @@ const stockPill = computed<{ tone: string; icon: Component; label: string }>(() 
     return { tone: 'bg-[color:var(--gold-soft)] text-[color:var(--gold-strong)]', icon: AlarmClock, label: getStockStatusLabel(props.product) }
   }
   return { tone: 'bg-[color:var(--teal-soft)] text-[color:var(--teal-strong)]', icon: Zap, label: getStockStatusLabel(props.product) }
-})
-
-// 价签徽章：促销 / 批发 / 活动（择一，对齐 classic 优先级）
-const priceSignal = computed<{ tone: string; label: string } | null>(() => {
-  if (promo.value) return { tone: 'bg-primary/10 text-primary', label: t('products.promotionTag') }
-  if (hasWholesalePrices(props.product)) return { tone: 'bg-[color:var(--teal-soft)] text-[color:var(--teal-strong)]', label: t('products.wholesaleTag') }
-  if (hasPromotionRules(props.product)) return { tone: 'bg-[color:var(--gold-soft)] text-[color:var(--gold-strong)]', label: t('products.promotionBadge') }
-  return null
 })
 </script>

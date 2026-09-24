@@ -1,88 +1,64 @@
 /* =========================================================================
-   D&J Studio — vault 模板设计令牌（"数字礼券店" v2）
-   方向: Vibrant & Block-based · 靛蓝 + 金 + 宝石青 · 圆体 Rubik
-   作用域: 全部选择器限定在 .vault-scope / body.vault-tokens 下，不影响 classic 模板。
-           暗色跟随全局 .dark（document.documentElement）。
-
-   为什么令牌要额外挂一份到 body.vault-tokens:
-           Toast / ConfirmDialog / 公告弹窗 / reka-ui 的 SelectContent 等浮层都
-           Teleport 到 <body>，落在 .vault-scope 之外。只写 .vault-scope 的话这些
-           浮层会退回 classic 的 --ui-* 调色板（蓝 #0071e3），与 vault 的靛蓝页面
-           撞色。body 上的 class 由 VaultLayout 挂载时打上、卸载时摘掉。
-           注意：只有「令牌」双挂，背景/flex 布局那几条仍只作用于 .vault-scope，
-           否则会改掉 body 自身的布局。
-
-   说明: 页面已全量改用 shadcn 组件 + Tailwind utility。本文件只保留
-         「设计令牌层」——vault 调色板 + 把 shadcn 的 --ui-* 在 .vault-scope
-         内覆盖成 vault 配色（utility/组件自动 vault 化）+ 基础元素样式。
-         旧的语义类(.btn/.pcard/.pill/.v-nav…)已删除。
-         字体已改为本地自托管（@fontsource），引入位置见 VaultLayout.vue，
-         不再依赖任何在线 CDN。
+   Vault visual baseline V0.1-B1
+   Direction: editorial AI subscription desk · warm paper + signal green
+   Scope: vault only. Classic storefront and admin remain untouched.
    ========================================================================= */
 
-/* ---------- Tokens: 亮色（默认） ---------- */
 .vault-scope,
 body.vault-tokens {
   --font-head: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --bg: #f6f6fb;
-  --bg-warm: #edecf6;
-  --surface: #ffffff;
-  --surface-2: #eef0f8;
-  --ink: #1c1b2e;
-  --ink-2: #565574;
-  --ink-3: #8584a0;
-  --border: #e6e5f1;
-  --border-strong: #d2d1e4;
+  --bg: #f1efe8;
+  --bg-warm: #e6e2d7;
+  --surface: #fcfbf7;
+  --surface-2: #e8e5dc;
+  --ink: #111418;
+  --ink-2: #3e444a;
+  --ink-3: #7a7f83;
+  --border: #d7d3c8;
+  --border-strong: #b9b4a7;
 
-  --red: #4f46e5;
-  --red-strong: #4338ca;
-  --red-soft: #ecebfb;
-  --gold: #f59e0b;
-  --gold-strong: #b6770a;
-  --gold-soft: #fdf0d7;
-  --teal: #0ea5a4;
-  --teal-strong: #0c8584;
-  --teal-soft: #d6f3f2;
-  --plum: #7c3aed;
-  --plum-soft: #f1e9fe;
+  --red: #9be55a;
+  --red-strong: #84cd46;
+  --red-soft: #e6f7d4;
+  --gold: #ff704d;
+  --gold-strong: #d94f31;
+  --gold-soft: #ffe2da;
+  --teal: #18a6b8;
+  --teal-strong: #0f7d8a;
+  --teal-soft: #d9f2f4;
+  --plum: #7657e6;
+  --plum-soft: #e9e3ff;
 
-  --on-red: #ffffff;
-  --on-gold: #1c1b2e;
+  --on-red: #111418;
+  --on-gold: #111418;
   --on-teal: #ffffff;
 
-  --success: #0ea5a4;
-  --warning: #b45309;
-  --danger: #dc2626;
+  --success: #138a63;
+  --warning: #c46a14;
+  --danger: #c93f36;
 
-  --r-sm: 10px;
-  --r: 16px;
-  --r-lg: 22px;
-  --r-xl: 30px;
+  --r-sm: 6px;
+  --r: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
   --r-pill: 999px;
 
-  --shadow-sm: 0 2px 8px -3px rgba(33, 26, 23, 0.14);
-  --shadow: 0 14px 30px -18px rgba(33, 26, 23, 0.28);
-  --shadow-lg: 0 26px 50px -24px rgba(33, 26, 23, 0.32);
-  --ring: 0 0 0 4px rgba(79, 70, 229, 0.2);
+  --shadow-sm: 0 1px 0 rgba(17,20,24,.08), 0 8px 24px -18px rgba(17,20,24,.38);
+  --shadow: 0 18px 42px -30px rgba(17,20,24,.46);
+  --shadow-lg: 0 30px 70px -38px rgba(17,20,24,.58);
+  --ring: 0 0 0 3px rgba(155,229,90,.32);
 
-  --gap-block: 56px;
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --gap-block: 64px;
+  --ease: cubic-bezier(.2,.75,.2,1);
 
-  /* ----------------------------------------------------------------------
-     shadcn --ui-* 覆盖 —— vault 作用域内 shadcn 组件(components/ui/*)与所有
-     标准 utility(bg-primary / bg-card / text-foreground / border-border /
-     rounded-xl …) 自动穿上 vault 皮肤。
-     值用 var(vault token)，因 custom property 惰性求值 + vault 自身 token 已在
-     `.dark .vault-scope` 翻转，故此处只写一次，亮/暗自动跟随，暗色块无需重复。
-     ---------------------------------------------------------------------- */
   --ui-bg-page: var(--bg);
   --ui-bg-elevated: var(--surface);
   --ui-bg-soft: var(--surface-2);
   --ui-bg-muted: var(--bg-warm);
-  --ui-bg-overlay: color-mix(in srgb, var(--surface) 80%, transparent);
-  --ui-bg-overlay-strong: color-mix(in srgb, var(--surface) 92%, transparent);
+  --ui-bg-overlay: color-mix(in srgb, var(--surface) 82%, transparent);
+  --ui-bg-overlay-strong: color-mix(in srgb, var(--surface) 94%, transparent);
   --ui-text-primary: var(--ink);
   --ui-text-secondary: var(--ink-2);
   --ui-text-muted: var(--ink-3);
@@ -96,11 +72,11 @@ body.vault-tokens {
   --ui-accent-warm-hover: var(--gold-strong);
   --ui-accent-warm-soft: var(--gold-soft);
   --ui-success: var(--success);
-  --ui-success-soft: var(--teal-soft);
+  --ui-success-soft: #d9efe6;
   --ui-warning: var(--warning);
   --ui-warning-soft: var(--gold-soft);
   --ui-danger: var(--danger);
-  --ui-danger-soft: var(--red-soft);
+  --ui-danger-soft: #f7dedb;
   --ui-info: var(--teal);
   --ui-info-soft: var(--teal-soft);
   --ui-focus-ring: var(--ring);
@@ -112,87 +88,425 @@ body.vault-tokens {
   --ui-shadow-card: var(--shadow-lg);
 }
 
-/* ---------- 外壳自身的排版与布局（不能挂到 body，否则改掉 body 布局） ---------- */
 .vault-scope {
-  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 10% -4%, rgba(155,229,90,.2), transparent 28rem),
+    linear-gradient(180deg, #f8f6ef 0, var(--bg) 26rem);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
-/* ---------- Tokens: 暗色（跟随全局 .dark） ---------- */
 .dark .vault-scope,
 .dark body.vault-tokens {
-  --bg: #15151f;
-  --bg-warm: #1c1c28;
-  --surface: #1f1f2c;
-  --surface-2: #292838;
-  --ink: #ececf6;
-  --ink-2: #b6b5cf;
-  --ink-3: #85849e;
-  --border: #333247;
-  --border-strong: #45445c;
+  --bg: #0d1115;
+  --bg-warm: #171d22;
+  --surface: #13191e;
+  --surface-2: #1d252b;
+  --ink: #f2f5ef;
+  --ink-2: #c4cbc5;
+  --ink-3: #87918b;
+  --border: #293238;
+  --border-strong: #3a464d;
 
-  --red: #6366f1;
-  --red-strong: #818cf8;
-  --red-soft: #272449;
-  --gold: #f6b73c;
-  --gold-strong: #f8c869;
-  --gold-soft: #38320f;
-  --teal: #2dd4bf;
-  --teal-strong: #5ee0d0;
-  --teal-soft: #123230;
-  --plum: #a78bfa;
-  --plum-soft: #2c2447;
+  --red: #b7ff68;
+  --red-strong: #9ce958;
+  --red-soft: #23351d;
+  --gold: #ff866a;
+  --gold-strong: #ff9a83;
+  --gold-soft: #3a251f;
+  --teal: #4ed4df;
+  --teal-strong: #75e2e9;
+  --teal-soft: #173438;
+  --plum: #a790ff;
+  --plum-soft: #292340;
 
-  --on-red: #ffffff;
-  --on-gold: #1c1b2e;
-  --on-teal: #08221f;
+  --on-red: #0e140d;
+  --on-gold: #111418;
+  --on-teal: #061d20;
 
-  --shadow-sm: 0 2px 8px -3px rgba(0, 0, 0, 0.5);
-  --shadow: 0 16px 32px -18px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 28px 54px -22px rgba(0, 0, 0, 0.66);
-  --ring: 0 0 0 4px rgba(99, 102, 241, 0.32);
+  --shadow-sm: 0 1px 0 rgba(255,255,255,.04), 0 12px 28px -18px rgba(0,0,0,.72);
+  --shadow: 0 24px 52px -32px rgba(0,0,0,.82);
+  --shadow-lg: 0 36px 84px -42px rgba(0,0,0,.9);
+  --ring: 0 0 0 3px rgba(183,255,104,.28);
 }
 
-/* ---------- Base（限定在作用域内） ----------
-   放进 @layer base，确保低于 Tailwind 的 @layer utilities，
-   工具类（text-* / bg-* …）始终可覆盖这些元素 reset。
-   未分层规则会无视优先级压过分层工具类，故此处必须显式分层。 */
 @layer base {
   .vault-scope h1,
   .vault-scope h2,
   .vault-scope h3,
   .vault-scope h4 {
-    font-family: var(--font-head);
-    font-weight: 700;
-    line-height: 1.1;
     margin: 0;
-    letter-spacing: -0.015em;
     color: var(--ink);
+    font-family: var(--font-head);
+    font-weight: 800;
+    line-height: 1.03;
+    letter-spacing: -.035em;
   }
+
   .vault-scope p { margin: 0; }
   .vault-scope a { color: inherit; text-decoration: none; }
   .vault-scope img,
   .vault-scope svg { display: block; max-width: 100%; }
   .vault-scope button { font-family: inherit; cursor: pointer; }
   .vault-scope ul { margin: 0; }
-  .vault-scope :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-  .vault-scope ::selection { background: var(--gold-soft); color: var(--ink); }
+  .vault-scope :focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+  .vault-scope ::selection { background: var(--red); color: var(--on-red); }
 }
 
-/* ---------- 响应式 / 无障碍 ---------- */
+/* Floating command bar */
+.vault-topbar-shell {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 14px 16px 0;
+  pointer-events: none;
+}
+
+.vault-topbar {
+  pointer-events: auto;
+  width: min(1180px, 100%);
+  min-height: 64px;
+  margin: 0 auto;
+  padding: 10px 12px 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 18px;
+  background: rgba(15,18,21,.94);
+  color: #f7f8f4;
+  box-shadow: 0 18px 44px -26px rgba(0,0,0,.72);
+  backdrop-filter: blur(18px);
+}
+
+.vault-brand-signal {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--red);
+  box-shadow: 0 0 0 5px rgba(155,229,90,.12);
+}
+
+.vault-topbar .vault-nav-link {
+  border-radius: 8px;
+  padding: 8px 11px;
+  color: #aeb6b0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.vault-topbar .vault-nav-link:hover,
+.vault-topbar .vault-nav-link.router-link-active {
+  background: rgba(255,255,255,.08);
+  color: #fff;
+}
+
+.vault-icon-button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 9px;
+  background: rgba(255,255,255,.06);
+  color: #cbd1cc;
+  transition: transform .2s ease, background-color .2s ease, color .2s ease;
+}
+
+.vault-icon-button:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+}
+
+.vault-login-cta {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  border-radius: 9px;
+  padding: 0 15px;
+  background: var(--red);
+  color: var(--on-red);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .01em;
+}
+
+/* Editorial home hero */
+.vault-home-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 380px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: #12161a;
+  color: #f6f7f3;
+  box-shadow: var(--shadow-lg);
+}
+
+.vault-home-hero::before {
+  content: "";
+  position: absolute;
+  inset: auto -8% -40% auto;
+  width: 44%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--red);
+  filter: blur(2px);
+  opacity: .92;
+}
+
+.vault-home-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(90deg, #000, transparent 86%);
+  pointer-events: none;
+}
+
+.vault-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #c4cbc5;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.vault-hero-eyebrow::before {
+  content: "";
+  width: 26px;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--red);
+}
+
+.vault-hero-title {
+  max-width: 760px;
+  color: #fff !important;
+  font-size: clamp(42px, 7vw, 84px);
+  line-height: .92 !important;
+  letter-spacing: -.055em !important;
+}
+
+.vault-hero-copy {
+  max-width: 56ch;
+  color: #b9c1bb;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.vault-hero-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  padding: 8px 11px;
+  background: rgba(255,255,255,.06);
+  color: #dce1dc;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.vault-hero-step b {
+  color: var(--red);
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+
+/* Section language */
+.vault-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.vault-section-label::before {
+  content: "";
+  width: 32px;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--red);
+}
+
+.vault-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: 14px;
+}
+
+/* Ticket-like product card */
+.vault-pass-card {
+  position: relative;
+  display: flex;
+  min-height: 330px;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s var(--ease);
+}
+
+.vault-pass-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.vault-pass-card::before,
+.vault-pass-card::after {
+  content: "";
+  position: absolute;
+  top: 186px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  z-index: 4;
+}
+
+.vault-pass-card::before { left: -9px; }
+.vault-pass-card::after { right: -9px; }
+
+.vault-pass-cover {
+  position: relative;
+  height: 178px;
+  overflow: hidden;
+  background: #161b20;
+}
+
+.vault-pass-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 35%, rgba(0,0,0,.4)),
+    radial-gradient(circle at 78% 24%, rgba(155,229,90,.34), transparent 42%);
+}
+
+.vault-pass-index {
+  position: absolute;
+  left: 13px;
+  top: 13px;
+  z-index: 5;
+  display: inline-flex;
+  min-width: 42px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: var(--red);
+  color: var(--on-red);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.vault-pass-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px dashed var(--border-strong);
+  padding-top: 12px;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.vault-pass-price {
+  font-family: var(--font-head);
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: -.035em;
+}
+
+.vault-pass-action {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #111418;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.dark .vault-pass-action {
+  background: var(--red);
+  color: var(--on-red);
+}
+
+/* Footer: deliberate, brand-neutral, no upstream-product look */
+.vault-footer {
+  margin-top: var(--gap-block);
+  border-top: 1px solid #252c31;
+  background: #101418;
+  color: #b4bcb6;
+}
+
+.vault-footer h4,
+.vault-footer strong,
+.vault-footer .vault-footer-brand {
+  color: #f6f7f3;
+}
+
+.vault-footer a:hover {
+  color: var(--red);
+}
+
 @media (max-width: 900px) {
   .vault-scope { --gap-block: 44px; }
+  .vault-topbar-shell { padding: 8px 8px 0; }
+  .vault-topbar { min-height: 58px; border-radius: 14px; padding: 8px 9px 8px 12px; }
+  .vault-home-hero { min-height: 330px; border-radius: 16px; }
+  .vault-home-hero::before { width: 68%; right: -30%; bottom: -24%; }
+  .vault-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
+
+@media (max-width: 620px) {
+  .vault-hero-title { font-size: clamp(38px, 14vw, 58px); }
+  .vault-product-grid { grid-template-columns: 1fr; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vault-scope *,
   .vault-scope *::before,
-  .vault-scope *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  .vault-scope *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
 }

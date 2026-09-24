@@ -1,7 +1,7 @@
 <template>
-  <section v-if="showHeroSection" class="mx-auto w-full max-w-[1180px] px-4 pt-6 sm:px-6">
+  <section v-if="showHeroSection || !bannerLoading" class="mx-auto w-full max-w-[1180px] px-4 pt-7 sm:px-6">
     <div
-      class="relative overflow-hidden rounded-lg border bg-card shadow-[var(--shadow)]"
+      class="vault-home-hero"
       @touchstart="onBannerTouchStart"
       @touchend="onBannerTouchEnd"
     >
@@ -11,69 +11,61 @@
           :src="heroImage"
           :key="heroImage"
           :alt="heroTitle"
-          class="absolute inset-0 h-full w-full object-cover"
+          class="absolute inset-0 h-full w-full object-cover opacity-25 grayscale-[35%]"
         />
       </Transition>
-      <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/40 to-black/15"></div>
 
-      <!-- Loading skeleton -->
-      <div v-if="bannerLoading" class="relative flex min-h-[180px] flex-col justify-end gap-3 p-5 sm:min-h-[240px] sm:p-7 md:min-h-[300px] md:p-9">
-        <div class="h-6 w-24 animate-pulse rounded-full bg-white/30"></div>
-        <div class="h-8 w-3/4 max-w-[520px] animate-pulse rounded-lg bg-white/30"></div>
-        <div class="h-4 w-1/2 max-w-[360px] animate-pulse rounded bg-white/25"></div>
-      </div>
+      <div class="relative z-[2] grid min-h-[380px] items-end gap-8 p-6 sm:p-8 md:grid-cols-[minmax(0,1fr)_260px] md:p-10">
+        <div class="max-w-[820px]">
+          <div class="vault-hero-eyebrow">AI MEMBERSHIP ACCESS</div>
+          <h1 class="vault-hero-title mt-6">
+            {{ heroTitle || '订阅、兑换、履约，一条链完成' }}
+          </h1>
+          <p class="vault-hero-copy mt-6">
+            {{ heroSubtitle || '选择需要的 AI 订阅服务，完成兑换后，订单直接进入履约流程。' }}
+          </p>
 
-      <!-- Content -->
-      <div v-else class="relative flex min-h-[180px] flex-col justify-between gap-4 p-5 sm:min-h-[240px] sm:p-7 md:min-h-[300px] md:p-9">
-        <div v-if="bannerCount > 1" class="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            class="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-black/25 text-white transition hover:bg-black/45"
-            :aria-label="t('common.previousBanner')"
-            @click="handlePrevHeroBanner"
-          >
-            <ChevronLeft class="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            class="grid h-9 w-9 place-items-center rounded-full border border-white/30 bg-black/25 text-white transition hover:bg-black/45"
-            :aria-label="t('common.nextBanner')"
-            @click="handleNextHeroBanner"
-          >
-            <ChevronRight class="h-4 w-4" />
-          </button>
-        </div>
+          <div class="mt-7 flex flex-wrap gap-2">
+            <span class="vault-hero-step"><b>01</b> SELECT</span>
+            <span class="vault-hero-step"><b>02</b> REDEEM</span>
+            <span class="vault-hero-step"><b>03</b> FULFILL</span>
+          </div>
 
-        <div class="mt-auto max-w-[640px] space-y-2.5">
-          <span class="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/45 px-3 py-1 text-[12px] font-bold uppercase tracking-[0.04em] text-white backdrop-blur-sm">
-            <Zap class="h-3.5 w-3.5" /> {{ heroBadge }}
-          </span>
-          <h2 class="text-xl font-extrabold leading-tight text-white sm:text-2xl md:text-[2rem]">{{ heroTitle }}</h2>
-          <p class="line-clamp-2 max-w-[52ch] text-sm leading-relaxed text-white/85 sm:text-base">{{ heroSubtitle }}</p>
-
-          <div class="flex flex-wrap items-center gap-3 pt-1.5">
-            <button
-              type="button"
-              class="inline-flex min-h-[40px] items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-[color:var(--ink)] transition hover:scale-[1.03]"
-              @click="goToHeroLink"
+          <div class="mt-8 flex flex-wrap items-center gap-3">
+            <RouterLink
+              to="/products"
+              class="inline-flex min-h-[44px] items-center gap-2 rounded-[9px] bg-primary px-5 py-2.5 text-sm font-black text-primary-foreground transition hover:-translate-y-0.5 hover:bg-primary-hover"
             >
-              {{ heroPrimaryButtonText }}
+              {{ heroPrimaryButtonText || '查看服务' }}
               <ArrowRight class="h-4 w-4" />
-            </button>
+            </RouterLink>
+            <span class="text-xs font-bold tracking-[0.08em] text-white/45">NO GENERIC STOREFRONT</span>
           </div>
         </div>
 
-        <div v-if="bannerCount > 1" class="flex items-center gap-2">
-          <button
-            v-for="(_, idx) in banners"
-            :key="`vault-banner-dot-${idx}`"
-            type="button"
-            class="h-2 rounded-full transition-all"
-            :class="idx === currentBannerIndex ? 'w-6 bg-white' : 'w-2 bg-white/45 hover:bg-white/70'"
-            :aria-label="t('common.switchBanner', { n: idx + 1 })"
-            @click="selectHeroBanner(idx)"
-          ></button>
-        </div>
+        <aside class="hidden self-stretch md:flex md:flex-col md:justify-between md:border-l md:border-white/10 md:pl-7">
+          <div class="text-[11px] font-black uppercase tracking-[0.16em] text-white/40">SERVICE DESK / 01</div>
+          <div>
+            <div class="text-[72px] font-black leading-none tracking-[-0.08em] text-primary">AI</div>
+            <div class="mt-2 text-sm font-bold uppercase tracking-[0.12em] text-white/55">Subscription<br />Access</div>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-bold text-white/55">
+            <span class="h-2 w-2 rounded-[2px] bg-primary"></span>
+            ONLINE / READY
+          </div>
+        </aside>
+      </div>
+
+      <div v-if="bannerCount > 1" class="absolute bottom-5 right-5 z-[3] flex items-center gap-2">
+        <button
+          v-for="(_, idx) in banners"
+          :key="`vault-banner-dot-${idx}`"
+          type="button"
+          class="h-2 rounded-[2px] transition-all"
+          :class="idx === currentBannerIndex ? 'w-7 bg-primary' : 'w-2 bg-white/30 hover:bg-white/60'"
+          :aria-label="t('common.switchBanner', { n: idx + 1 })"
+          @click="selectHeroBanner(idx)"
+        ></button>
       </div>
     </div>
   </section>
@@ -82,7 +74,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowRight, ChevronLeft, ChevronRight, Zap } from 'lucide-vue-next'
+import { ArrowRight } from 'lucide-vue-next'
 import { useBannerCarousel } from '../../../composables/useBannerCarousel'
 
 const { t } = useI18n()
@@ -94,15 +86,11 @@ const {
   bannerCount,
   showHeroSection,
   heroImage,
-  heroBadge,
   heroTitle,
   heroSubtitle,
   heroPrimaryButtonText,
   loadBanners,
-  handleNextHeroBanner,
-  handlePrevHeroBanner,
   selectHeroBanner,
-  goToHeroLink,
   onBannerTouchStart,
   onBannerTouchEnd,
   stopHeroAutoPlay,
@@ -115,7 +103,7 @@ onUnmounted(() => stopHeroAutoPlay())
 <style scoped>
 .vault-banner-fade-enter-active,
 .vault-banner-fade-leave-active {
-  transition: opacity 300ms ease;
+  transition: opacity 360ms ease;
 }
 .vault-banner-fade-enter-from,
 .vault-banner-fade-leave-to {

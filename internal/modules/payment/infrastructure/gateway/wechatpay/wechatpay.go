@@ -308,7 +308,6 @@ func TestWechatPayPublicKey(ctx context.Context, cfg *Config) (*SecurityEchoResu
 		cfg,
 		privateKey,
 		verifier,
-		withAcceptJSONHTTPClient(),
 	)
 	if err != nil {
 		return nil, err

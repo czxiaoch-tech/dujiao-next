@@ -17,6 +17,7 @@ import (
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/common"
+	"github.com/dujiao-next/internal/shared/netguard"
 )
 
 var (
@@ -334,7 +335,7 @@ func postJSON(ctx context.Context, endpoint string, params map[string]interface{
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	client := &http.Client{Timeout: 15 * time.Second}
+	client := netguard.NewHTTPClient(15 * time.Second)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

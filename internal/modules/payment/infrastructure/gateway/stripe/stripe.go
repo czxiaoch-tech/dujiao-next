@@ -19,6 +19,7 @@ import (
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/common"
+	"github.com/dujiao-next/internal/shared/netguard"
 
 	"github.com/shopspring/decimal"
 )
@@ -608,7 +609,7 @@ func doFormRequest(ctx context.Context, cfg *Config, method, path string, form u
 	req.Header.Set("Authorization", "Bearer "+cfg.SecretKey)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := (&http.Client{Timeout: defaultTimeout}).Do(req)
+	resp, err := netguard.NewHTTPClient(defaultTimeout).Do(req)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%w: %v", ErrRequestFailed, err)
 	}
@@ -631,7 +632,7 @@ func doJSONRequest(ctx context.Context, cfg *Config, method, path string) ([]byt
 	}
 	req.Header.Set("Authorization", "Bearer "+cfg.SecretKey)
 
-	resp, err := (&http.Client{Timeout: defaultTimeout}).Do(req)
+	resp, err := netguard.NewHTTPClient(defaultTimeout).Do(req)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%w: %v", ErrRequestFailed, err)
 	}

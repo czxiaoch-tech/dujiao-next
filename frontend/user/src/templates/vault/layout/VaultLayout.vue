@@ -125,9 +125,9 @@
       <div class="mx-auto flex w-full max-w-[1180px] flex-wrap items-center justify-between gap-3.5 border-t px-6 pb-[30px] pt-[18px] text-[13.5px] text-muted-foreground">
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span>© {{ year }} {{ brandName }}</span>
-          <span class="font-semibold tracking-[0.08em] text-[#8f9992]">AI SUBSCRIPTION SERVICE</span>
+          <span class="font-semibold tracking-[0.08em] text-[#8f9992]">人工智能订阅服务</span>
         </div>
-        <span>简体中文 · 繁體 · English</span>
+        <span>简体中文 · 繁体中文 · 英文</span>
       </div>
     </footer>
   </div>
@@ -172,7 +172,7 @@ const moreEl = ref<HTMLElement | null>(null)
 
 const year = new Date().getFullYear()
 
-const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || 'D&J Studio')
+const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || 'AI订阅服务站')
 const brandLogo = computed(() => {
   const raw = String(appStore.config?.brand?.site_logo || '').trim()
   return raw ? getImageUrl(raw) : ''
@@ -217,8 +217,8 @@ const cartCount = computed(() => cartStore.totalItems)
 
 const languages = [
   { code: 'zh-CN', name: '简体中文' },
-  { code: 'zh-TW', name: '繁體中文' },
-  { code: 'en-US', name: 'English' },
+  { code: 'zh-TW', name: '繁体中文' },
+  { code: 'en-US', name: '英文' },
 ]
 
 const changeLanguage = (code: string) => {

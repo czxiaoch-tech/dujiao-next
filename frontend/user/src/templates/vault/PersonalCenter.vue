@@ -1,11 +1,11 @@
 <template>
-  <div class="mx-auto w-full max-w-[1180px] px-6 pb-10 pt-[22px]">
+  <div class="vault-personal-center mx-auto w-full max-w-[1180px] px-4 pb-10 pt-5 sm:px-6">
     <!-- 账户头部 -->
-    <header class="mb-[22px] flex flex-wrap items-center justify-between gap-[18px] rounded-xl border bg-card px-7 py-[26px]">
+    <header class="vault-account-header mb-5 flex flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-6">
       <div class="flex min-w-0 items-center gap-4">
-        <div class="grid h-[62px] w-[62px] flex-none place-items-center rounded-md bg-primary/10 text-[26px] font-extrabold text-primary">{{ displayInitial }}</div>
+        <div class="grid h-[54px] w-[54px] flex-none place-items-center rounded-[10px] bg-primary text-[22px] font-black text-primary-foreground">{{ displayInitial }}</div>
         <div class="min-w-0">
-          <p class="text-[13px] font-bold uppercase tracking-[0.04em] text-primary">{{ t('personalCenter.title') }}</p>
+          <p class="text-[11px] font-black tracking-[0.12em] text-primary">{{ t('personalCenter.title') }}</p>
           <h1 class="my-1 text-[26px] font-extrabold">{{ userProfileStore.displayName }}</h1>
           <p class="text-sm text-muted-foreground">{{ userProfileStore.profile?.email || t('personalCenter.subtitle') }}</p>
         </div>
@@ -24,17 +24,17 @@
     <div class="grid items-start gap-[22px] lg:grid-cols-[248px_1fr]">
       <!-- 侧栏 -->
       <aside class="min-w-0 sticky top-[90px] max-[900px]:static">
-        <nav class="flex flex-col gap-0.5 rounded-xl border bg-card p-2.5 max-[900px]:flex-row max-[900px]:overflow-x-auto">
+        <nav class="vault-personal-nav flex flex-col gap-1 p-2 max-[900px]:flex-row max-[900px]:overflow-x-auto">
           <button
             v-for="item in visibleSectionItems"
             :key="item.key"
             type="button"
-            class="flex w-full items-center gap-[11px] rounded-sm px-3.5 py-[11px] text-left text-[14.5px] font-semibold transition-colors max-[900px]:whitespace-nowrap"
+            class="flex w-full items-center gap-[10px] rounded-[8px] px-3 py-[10px] text-left text-[14px] font-bold transition-colors max-[900px]:whitespace-nowrap"
             :class="currentSection === item.key ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'"
             @click="switchSection(item.key)"
           >
             <component :is="item.icon" class="h-[18px] w-[18px] flex-none" />
-            <span>{{ t(item.label) }}</span>
+            <span>{{ item.key === 'giftCard' ? '产品码兑换' : t(item.label) }}</span>
           </button>
         </nav>
       </aside>
@@ -178,7 +178,7 @@
             <p class="mt-2 text-muted-foreground">{{ t('resellerConsole.dashboard.description') }}</p>
             <Button as-child size="sm" class="mt-4 rounded-full"><RouterLink to="/reseller">{{ t('resellerConsole.nav.dashboard') }}</RouterLink></Button>
           </div>
-          <GiftCardPanel v-else-if="currentSection === 'giftCard'" />
+          <div v-else-if="currentSection === 'giftCard'" class="vault-redeem-shell"><GiftCardPanel display-mode="vault" /></div>
           <ApiPanel v-else-if="currentSection === 'api'" />
           <OrdersPanel v-else />
         </div>

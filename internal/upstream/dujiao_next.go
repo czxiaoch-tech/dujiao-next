@@ -16,6 +16,7 @@ import (
 	siteconnectiondomain "github.com/dujiao-next/internal/modules/siteconnection/domain"
 
 	"github.com/dujiao-next/internal/logger"
+	"github.com/dujiao-next/internal/shared/netguard"
 
 	"github.com/google/uuid"
 )
@@ -60,9 +61,7 @@ func NewDujiaoNextAdapter(conn *siteconnectiondomain.Connection, uploadsDir stri
 		apiKey:     conn.ApiKey,
 		apiSecret:  conn.ApiSecret,
 		uploadsDir: uploadsDir,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: netguard.NewHTTPClient(30 * time.Second),
 	}
 }
 

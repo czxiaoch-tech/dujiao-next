@@ -124,8 +124,21 @@ watch(() => generateForm.redeemType, (type) => {
   generateForm.amount = ''
 })
 
-watch(() => generateForm.productId, () => {
+watch(() => generateForm.productId, async (rawID) => {
   generateForm.skuId = ''
+  const id = Number(rawID)
+  if (!Number.isFinite(id) || id <= 0) return
+  try {
+    const response = await adminAPI.getProduct(id)
+    const detail = response?.data?.data as AdminProduct | undefined
+    if (detail?.id) {
+      const index = productOptions.value.findIndex((item) => Number(item.id) === Number(detail.id))
+      if (index >= 0) productOptions.value[index] = detail
+      else productOptions.value.push(detail)
+    }
+  } catch {
+    // 商品列表中的数据仍可作为兜底。
+  }
   const skus = activeSKUOptions.value
   if (skus.length === 1) {
     generateForm.skuId = String(skus[0].id)

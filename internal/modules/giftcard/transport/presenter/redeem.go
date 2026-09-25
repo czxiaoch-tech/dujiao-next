@@ -75,7 +75,7 @@ func NewGiftCardResp(c *giftcarddomain.GiftCard) GiftCardResp {
 	return GiftCardResp{
 		ID:              c.ID,
 		Name:            c.Name,
-		Code:            c.Code,
+		Code:            c.CodeMasked,
 		Amount:          c.Amount,
 		Currency:        c.Currency,
 		RedeemType:      redeemType,

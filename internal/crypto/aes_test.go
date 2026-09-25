@@ -50,3 +50,24 @@ func TestDeriveKeyDeterministic(t *testing.T) {
 		t.Fatalf("expected 32 bytes, got %d", len(k1))
 	}
 }
+
+func TestEncryptDecryptWithAAD(t *testing.T) {
+	key := DeriveKey("gift-card-aad-secret")
+	aad := []byte("dujiao-next/gift-card-code/v1")
+	plaintext := "GC-SECRET-001"
+
+	encrypted, err := EncryptWithAAD(key, plaintext, aad)
+	if err != nil {
+		t.Fatalf("encrypt with aad: %v", err)
+	}
+	decrypted, err := DecryptWithAAD(key, encrypted, aad)
+	if err != nil {
+		t.Fatalf("decrypt with aad: %v", err)
+	}
+	if decrypted != plaintext {
+		t.Fatalf("expected %q, got %q", plaintext, decrypted)
+	}
+	if _, err := DecryptWithAAD(key, encrypted, []byte("wrong-context")); err == nil {
+		t.Fatal("expected authentication failure with wrong aad")
+	}
+}

@@ -129,7 +129,6 @@ func (s *Service) Export(ids []uint, format string) ([]byte, string, error) {
 	return []byte(builder.String()), "text/csv; charset=utf-8", nil
 }
 
-
 func revealGiftCardCode(repo giftcardcontract.Repository, card *giftcarddomain.GiftCard) (string, error) {
 	if card == nil {
 		return "", giftcardcontract.ErrFetchFailed

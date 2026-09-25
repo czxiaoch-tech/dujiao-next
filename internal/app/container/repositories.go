@@ -51,7 +51,11 @@ func (c *Container) initRepositories() error {
 	c.PaymentChannelStore = paymentgormstore.NewChannelStore(db)
 	c.CardSecretRepo = cardsecretgormstore.New(db)
 	c.CardSecretBatchRepo = cardsecretgormstore.NewBatch(db)
-	c.GiftCardRepo = giftcardgormstore.New(db)
+	giftCardRepo := giftcardgormstore.New(db, c.Config.App.SecretKey)
+	if _, err := giftCardRepo.MigrateProductCodeEncryption(); err != nil {
+		return fmt.Errorf("migrate gift-card product-code encryption: %w", err)
+	}
+	c.GiftCardRepo = giftCardRepo
 	c.FulfillmentStore = fulfillmentgormstore.New(db)
 	c.ProductRepo = productgormstore.NewProductStore(db)
 	c.ProductSKURepo = productgormstore.NewSKUStore(db)

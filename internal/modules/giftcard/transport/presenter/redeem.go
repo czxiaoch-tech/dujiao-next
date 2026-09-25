@@ -72,10 +72,14 @@ func NewGiftCardResp(c *giftcarddomain.GiftCard) GiftCardResp {
 	if redeemType == "" {
 		redeemType = giftcarddomain.GiftCardRedeemTypeWallet
 	}
+	displayCode := c.CodeMasked
+	if redeemType == giftcarddomain.GiftCardRedeemTypeWallet && c.CodeHash == nil {
+		displayCode = c.Code
+	}
 	return GiftCardResp{
 		ID:              c.ID,
 		Name:            c.Name,
-		Code:            c.CodeMasked,
+		Code:            displayCode,
 		Amount:          c.Amount,
 		Currency:        c.Currency,
 		RedeemType:      redeemType,

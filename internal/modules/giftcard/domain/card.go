@@ -22,7 +22,8 @@ type GiftCard struct {
 	ID             uint           `gorm:"primarykey" json:"id"`                                           // 主键
 	BatchID        *uint          `gorm:"index" json:"batch_id,omitempty"`                                // 批次ID
 	Name           string         `gorm:"type:varchar(120);not null" json:"name"`                         // 礼品卡名称
-	Code           string         `gorm:"type:varchar(80);uniqueIndex;not null" json:"code"`              // 卡密
+	Code           string         `gorm:"column:code;type:text;not null" json:"code"`                     // 卡密：产品兑换码持久化为密文
+	CodeHash       *string        `gorm:"column:code_hash;type:varchar(64)" json:"-"`                       // 产品兑换码 HMAC-SHA256 检索索引
 	Amount          money.Amount   `gorm:"type:decimal(20,2);not null" json:"amount"`                           // 面额（余额礼品卡有效）
 	Currency        string         `gorm:"type:varchar(16);not null;default:'CNY'" json:"currency"`             // 币种
 	RedeemType      string         `gorm:"type:varchar(24);index;not null;default:'wallet'" json:"redeem_type"` // 兑换类型（wallet/product）

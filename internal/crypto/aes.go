@@ -18,6 +18,11 @@ func DeriveKey(secret string) []byte {
 
 // Encrypt AES-256-GCM 加密，返回 hex 编码的密文
 func Encrypt(key []byte, plaintext string) (string, error) {
+	return EncryptWithAAD(key, plaintext, nil)
+}
+
+// EncryptWithAAD 使用 AES-256-GCM 加密，并把 aad 作为不可伪造的上下文绑定到密文。
+func EncryptWithAAD(key []byte, plaintext string, aad []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", fmt.Errorf("create cipher: %w", err)
@@ -33,12 +38,17 @@ func Encrypt(key []byte, plaintext string) (string, error) {
 		return "", fmt.Errorf("generate nonce: %w", err)
 	}
 
-	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
+	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), aad)
 	return hex.EncodeToString(ciphertext), nil
 }
 
-// Decrypt AES-256-GCM 解密，输入 hex 编码的密文
+// Decrypt AES-256-GCM 解密，输入 hex 编码的密文。
 func Decrypt(key []byte, ciphertextHex string) (string, error) {
+	return DecryptWithAAD(key, ciphertextHex, nil)
+}
+
+// DecryptWithAAD 使用与加密时相同的 aad 解密；上下文不一致时认证会失败。
+func DecryptWithAAD(key []byte, ciphertextHex string, aad []byte) (string, error) {
 	ciphertext, err := hex.DecodeString(ciphertextHex)
 	if err != nil {
 		return "", fmt.Errorf("decode hex: %w", err)
@@ -60,7 +70,7 @@ func Decrypt(key []byte, ciphertextHex string) (string, error) {
 	}
 
 	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, aad)
 	if err != nil {
 		return "", fmt.Errorf("decrypt: %w", err)
 	}

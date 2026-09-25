@@ -12,6 +12,7 @@ import (
 	giftcardapp "github.com/dujiao-next/internal/modules/giftcard/application"
 	giftcardcontract "github.com/dujiao-next/internal/modules/giftcard/contract"
 	giftcarddomain "github.com/dujiao-next/internal/modules/giftcard/domain"
+	giftcardsecurity "github.com/dujiao-next/internal/modules/giftcard/security"
 	"github.com/dujiao-next/internal/platform/http/ginutil"
 	"github.com/dujiao-next/internal/platform/http/response"
 	"github.com/dujiao-next/internal/shared/money"
@@ -79,6 +80,13 @@ type adminGiftCardItem struct {
 	giftcarddomain.GiftCard
 	IsExpired    bool               `json:"is_expired"`
 	RedeemedUser *adminGiftCardUser `json:"redeemed_user,omitempty"`
+}
+
+func maskAdminGiftCard(card giftcarddomain.GiftCard) giftcarddomain.GiftCard {
+	if strings.EqualFold(strings.TrimSpace(card.RedeemType), giftcarddomain.GiftCardRedeemTypeProduct) {
+		card.Code = giftcardsecurity.MaskCode(card.Code)
+	}
+	return card
 }
 
 // Generate 管理端生成礼品卡。
@@ -193,8 +201,9 @@ func (h *AdminHandler) List(c *gin.Context) {
 	now := time.Now()
 	items := make([]adminGiftCardItem, 0, len(cards))
 	for _, card := range cards {
+		displayCard := maskAdminGiftCard(card)
 		item := adminGiftCardItem{
-			GiftCard:  card,
+			GiftCard:  displayCard,
 			IsExpired: card.ExpiresAt != nil && card.ExpiresAt.Before(now),
 		}
 		if card.RedeemedUserID != nil {
@@ -258,7 +267,7 @@ func (h *AdminHandler) Update(c *gin.Context) {
 		}
 		return
 	}
-	response.Success(c, card)
+	response.Success(c, maskAdminGiftCard(*card))
 }
 
 // Delete 删除礼品卡。

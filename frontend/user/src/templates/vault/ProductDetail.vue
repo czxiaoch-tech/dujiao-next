@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-[1180px] px-6 pb-6">
+  <div class="vault-product-detail mx-auto w-full max-w-[1180px] px-4 pb-8 sm:px-6">
     <!-- Loading -->
     <div v-if="loading" class="grid gap-11 py-2.5 lg:grid-cols-2">
       <div class="h-[380px] rounded-xl bg-[linear-gradient(135deg,#3a3950,var(--ink))] opacity-50"></div>
@@ -20,10 +20,10 @@
         <span class="text-foreground">{{ getLocalizedText(product.title) }}</span>
       </nav>
 
-      <section class="grid gap-11 py-2.5 lg:grid-cols-2">
+      <section class="grid gap-6 py-3 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.95fr)] lg:gap-8">
         <!-- 图区 -->
         <div>
-          <div class="relative grid h-[380px] place-items-center overflow-hidden rounded-xl" :class="images.length ? '' : 'bg-[linear-gradient(135deg,#7b74f2,var(--red))]'">
+          <div class="vault-detail-media relative grid h-[360px] place-items-center overflow-hidden" :class="images.length ? '' : 'bg-[linear-gradient(135deg,#7b74f2,var(--red))]'">
             <img v-if="currentImage" :src="currentImage" :alt="getLocalizedText(product.title)" class="absolute inset-0 h-full w-full object-cover" />
             <Package v-else class="h-[110px] w-[110px] text-white/95" />
           </div>
@@ -41,17 +41,18 @@
         </div>
 
         <!-- 购买区 -->
-        <div>
+        <div class="vault-detail-buybox">
+          <div class="vault-section-label">商品信息</div>
           <span v-if="categoryName" class="block truncate text-[13px] font-semibold text-muted-foreground">{{ categoryName }}</span>
-          <h1 class="my-2 mb-3 text-[32px] font-extrabold">{{ getLocalizedText(product.title) }}</h1>
+          <h1 class="my-2 mb-3 text-[30px] font-black tracking-[-0.03em]">{{ getLocalizedText(product.title) }}</h1>
 
           <div class="mb-1.5 flex flex-wrap gap-2">
-            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px] font-semibold" :class="stockPillTone">{{ getStockStatusLabel(product) }}</span>
+            <span class="inline-flex items-center gap-1.5 rounded-[7px] px-2.5 py-1 text-[12px] font-bold" :class="stockPillTone">{{ getStockStatusLabel(product) }}</span>
             <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--teal-soft)] px-2.5 py-1 text-[12.5px] font-semibold text-[color:var(--teal-strong)]">
               <component :is="product.fulfillment_type === 'auto' ? Zap : Pencil" class="h-3.5 w-3.5" />
               {{ getFulfillmentTypeLabel(product.fulfillment_type) }}
             </span>
-            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px] font-semibold" :class="product.purchase_type === 'guest' ? 'bg-[color:var(--gold-soft)] text-[color:var(--gold-strong)]' : 'bg-[color:var(--teal-soft)] text-[color:var(--teal-strong)]'">
+            <span class="inline-flex items-center gap-1.5 rounded-[7px] px-2.5 py-1 text-[12px] font-bold" :class="product.purchase_type === 'guest' ? 'bg-[color:var(--gold-soft)] text-[color:var(--gold-strong)]' : 'bg-[color:var(--teal-soft)] text-[color:var(--teal-strong)]'">
               <component :is="product.purchase_type === 'guest' ? UserPlus : Lock" class="h-3.5 w-3.5" />
               {{ getPurchaseTypeLabel(product.purchase_type) }}
             </span>
@@ -62,7 +63,7 @@
           </div>
 
           <!-- 价格 -->
-          <div class="my-5 border-b pb-5">
+          <div class="vault-detail-price my-5 border-y py-5">
             <div class="mb-2.5 flex flex-wrap items-center gap-2">
               <span class="text-[13px] font-semibold text-muted-foreground">{{ t('products.price') }}</span>
               <span v-if="(selectedSku && hasSkuPromotionPrice(selectedSku)) || (!selectedSku && hasPromotionPrice(product))" class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[12.5px] font-semibold text-primary">{{ t('products.promotionTag') }}</span>
@@ -171,10 +172,10 @@
 
           <!-- 操作 -->
           <div ref="purchaseActionsRef" class="mt-[18px] flex flex-wrap gap-3">
-            <Button v-if="requiresLogin" class="h-12 w-full rounded-full text-[17px] font-bold" @click="goLogin">{{ t('productDetail.loginToBuy') }}</Button>
+            <Button v-if="requiresLogin" class="vault-primary-action h-12 w-full text-[16px] font-black" @click="goLogin">{{ t('productDetail.loginToBuy') }}</Button>
             <template v-else>
-              <Button class="h-12 flex-1 rounded-full text-[17px] font-bold" :disabled="!canPurchase" @click="buyNow"><Zap /> {{ t('productDetail.buyNow') }}</Button>
-              <Button variant="outline" class="h-12 rounded-full text-[17px] font-bold" :disabled="!canPurchase" @click="addToCart"><ShoppingCart /> {{ t('productDetail.addToCart') }}</Button>
+              <Button class="vault-primary-action h-12 flex-1 text-[16px] font-black" :disabled="!canPurchase" @click="buyNow"><Zap /> {{ t('productDetail.buyNow') }}</Button>
+              <Button variant="outline" class="vault-secondary-action h-12 text-[16px] font-black" :disabled="!canPurchase" @click="addToCart"><ShoppingCart /> {{ t('productDetail.addToCart') }}</Button>
             </template>
           </div>
 

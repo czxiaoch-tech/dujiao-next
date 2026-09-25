@@ -1,13 +1,13 @@
 <template>
-  <div class="space-y-6 gift-card-panel-enter">
+  <div class="space-y-6 gift-card-panel-enter" :class="{ 'vault-gift-card-panel': displayMode === 'vault' }">
     <div class="rounded-2xl border bg-card p-7 shadow-sm">
       <PanelHeading
-        :title="t('personalCenter.giftCard.title')"
-        :description="t('personalCenter.giftCard.subtitle')"
+        :title="displayMode === 'vault' ? '产品码兑换' : t('personalCenter.giftCard.title')"
+        :description="displayMode === 'vault' ? '输入产品码，确认对应商品后填写充值资料并提交履约。' : t('personalCenter.giftCard.subtitle')"
         :icon="Gift"
       >
         <template #actions>
-          <Badge variant="accent" size="sm">{{ t('personalCenter.tabs.giftCard') }}</Badge>
+          <Badge variant="accent" size="sm">{{ displayMode === 'vault' ? '产品码' : t('personalCenter.tabs.giftCard') }}</Badge>
         </template>
       </PanelHeading>
 
@@ -161,6 +161,9 @@ interface ManualField {
   max_len?: number
   options: string[]
 }
+
+const props = withDefaults(defineProps<{ displayMode?: 'default' | 'vault' }>(), { displayMode: 'default' })
+const { displayMode } = props
 
 const { t } = useI18n()
 const appStore = useAppStore()

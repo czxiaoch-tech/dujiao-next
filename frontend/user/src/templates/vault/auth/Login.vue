@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-[70vh] items-center justify-center px-4 py-12">
+  <div class="vault-auth-shell flex min-h-[72vh] items-center justify-center px-4 py-10">
     <div class="w-full max-w-[460px]">
       <div class="mb-3.5 flex items-center justify-between px-1">
         <RouterLink to="/" class="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
@@ -8,9 +8,9 @@
         <Badge variant="neutral" size="sm" class="rounded-full">{{ t('navbar.personalCenter') }}</Badge>
       </div>
 
-      <Card class="p-7 shadow-[var(--shadow-lg)] sm:p-9">
+      <Card class="vault-auth-card p-6 sm:p-8">
         <div class="mb-7 text-center">
-          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">{{ brandSiteName }}</p>
+          <p class="vault-section-label !mb-0 justify-center">人工智能订阅服务站</p>
           <h1 class="mt-3 text-3xl font-extrabold">{{ step === 'totp' ? t('auth.login.totp.title') : t('auth.login.title') }}</h1>
           <p class="mt-2 text-sm text-muted-foreground">{{ step === 'totp' ? t('auth.login.totp.subtitle') : t('auth.login.subtitle') }}</p>
         </div>
@@ -42,7 +42,7 @@
             <AlertDescription>{{ error }}</AlertDescription>
           </Alert>
 
-          <Button type="submit" :disabled="userAuthStore.loading" class="h-11 w-full rounded-full font-bold">
+          <Button type="submit" :disabled="userAuthStore.loading" class="vault-primary-action h-11 w-full font-black">
             {{ userAuthStore.loading ? t('auth.login.totp.verifying') : t('auth.login.totp.submit') }}
           </Button>
 
@@ -137,7 +137,7 @@
             <AlertDescription>{{ error }}</AlertDescription>
           </Alert>
 
-          <Button type="submit" :disabled="userAuthStore.loading" class="h-11 w-full rounded-full font-bold">
+          <Button type="submit" :disabled="userAuthStore.loading" class="vault-primary-action h-11 w-full font-black">
             <LogIn v-if="!userAuthStore.loading" class="h-4 w-4" />
             {{ userAuthStore.loading ? t('auth.login.submitting') : t('auth.login.submit') }}
           </Button>
@@ -153,7 +153,7 @@
                 <p class="text-center text-xs text-muted-foreground">{{ t('auth.login.telegramHint') }}</p>
               </div>
               <div v-else-if="showTelegramOidc" class="grid gap-2">
-                <Button type="button" variant="outline" class="h-11 w-full rounded-full font-semibold" @click="startTelegramOidc">{{ t('auth.login.telegramOidcButton') }}</Button>
+                <Button type="button" variant="outline" class="vault-secondary-action h-11 w-full font-semibold" @click="startTelegramOidc">{{ t('auth.login.telegramOidcButton') }}</Button>
                 <p class="text-center text-xs text-muted-foreground">{{ t('auth.login.telegramOidcHint') }}</p>
               </div>
               <div v-else-if="showMiniAppLoginHint" class="grid gap-2">
@@ -178,7 +178,7 @@
           </div>
           <div v-if="showTelegramMiniAppEntry" class="grid gap-2 pt-1">
             <p class="text-center text-xs text-muted-foreground">{{ t('auth.login.telegramMiniAppEntryHint') }}</p>
-            <Button type="button" variant="outline" class="h-11 w-full rounded-full font-semibold" @click="openTelegramMiniAppEntry">{{ t('auth.login.telegramMiniAppEntryAction') }}</Button>
+            <Button type="button" variant="outline" class="vault-secondary-action h-11 w-full font-semibold" @click="openTelegramMiniAppEntry">{{ t('auth.login.telegramMiniAppEntryAction') }}</Button>
           </div>
         </form>
       </Card>
@@ -207,7 +207,7 @@ import { useLogin } from '../../../composables/useLogin'
 const { t } = useI18n()
 
 const {
-  userAuthStore, brandSiteName,
+  userAuthStore,
   email, password, showPassword, rememberMe,
   step, totpMode, totpCode, recoveryCode, challengeRemainingSeconds, handleVerify2FA, cancel2FA,
   error, info, formValidation,

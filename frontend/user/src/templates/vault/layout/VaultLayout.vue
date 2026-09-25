@@ -127,7 +127,7 @@
           <span>© {{ year }} {{ brandName }}</span>
           <span class="font-semibold tracking-[0.08em] text-[#8f9992]">人工智能订阅服务</span>
         </div>
-        <span>简体中文 · 繁体中文 · 英文</span>
+        <span>简体中文</span>
       </div>
     </footer>
   </div>
@@ -147,6 +147,7 @@ import { useNavConfig, type NavItem } from '../../../composables/useNavConfig'
 import { useTheme } from '../../../utils/theme'
 import { getImageUrl } from '../../../utils/image'
 import { getLocalizedText } from '../../../utils/resellerSiteConfig'
+import { setI18nLocale } from '../../../i18n'
 // 本地自托管字体（替代 Google Fonts CDN），仅 vault 模板加载
 import '@fontsource/rubik/latin-400.css'
 import '@fontsource/rubik/latin-500.css'
@@ -163,6 +164,9 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const cartStore = useCartStore()
 const userAuthStore = useUserAuthStore()
+// Vault V0.1 固定使用简体中文；不写入全局语言偏好，避免影响 Classic 模板。
+if (appStore.locale !== 'zh-CN') appStore.locale = 'zh-CN'
+void setI18nLocale('zh-CN')
 const { theme, toggleTheme } = useTheme()
 
 const langOpen = ref(false)
@@ -217,8 +221,6 @@ const cartCount = computed(() => cartStore.totalItems)
 
 const languages = [
   { code: 'zh-CN', name: '简体中文' },
-  { code: 'zh-TW', name: '繁体中文' },
-  { code: 'en-US', name: '英文' },
 ]
 
 const changeLanguage = (code: string) => {

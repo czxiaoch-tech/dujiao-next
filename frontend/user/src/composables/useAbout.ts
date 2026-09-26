@@ -37,17 +37,22 @@ export function useAbout() {
     return ''
   }
 
-  const heroTitle = computed(() => resolveLocalizedText(aboutConfig.value?.hero?.title))
-  const heroSubtitle = computed(() => resolveLocalizedText(aboutConfig.value?.hero?.subtitle))
-  const introductionText = computed(() => resolveLocalizedText(aboutConfig.value?.introduction))
-  const servicesTitle = computed(() => resolveLocalizedText(aboutConfig.value?.services?.title))
-  const contactTitle = computed(() => resolveLocalizedText(aboutConfig.value?.contact?.title))
-  const contactText = computed(() => resolveLocalizedText(aboutConfig.value?.contact?.text))
+  const heroTitle = computed(() => resolveLocalizedText(aboutConfig.value?.hero?.title) || '关于本站')
+  const heroSubtitle = computed(() => resolveLocalizedText(aboutConfig.value?.hero?.subtitle) || '独立第三方数字订阅服务站')
+  const introductionText = computed(() => resolveLocalizedText(aboutConfig.value?.introduction) || '本站提供数字订阅商品展示、产品码兑换与人工履约服务。当前 ChatGPT Plus 已完成真实支付、自动发码、兑换与履约链路验证。本站并非 OpenAI 官方网站，也不代表 OpenAI。')
+  const servicesTitle = computed(() => resolveLocalizedText(aboutConfig.value?.services?.title) || '我们提供什么')
+  const contactTitle = computed(() => resolveLocalizedText(aboutConfig.value?.contact?.title) || '联系与售后')
+  const contactText = computed(() => resolveLocalizedText(aboutConfig.value?.contact?.text) || '订单、产品码或履约状态有问题，可通过页面公开联系方式联系我们。')
 
   const serviceItems = computed(() => {
     const raw = aboutConfig.value?.services?.items
-    if (!Array.isArray(raw)) {
-      return []
+    if (!Array.isArray(raw) || raw.length === 0) {
+      return [
+        '公开展示实际可售商品与价格',
+        '付款后自动获取产品码',
+        '产品码兑换后进入人工履约',
+        '个人中心查看订单与履约状态',
+      ]
     }
 
     return raw
@@ -57,7 +62,8 @@ export function useAbout() {
 
   const hasIntroduction = computed(() => introductionText.value !== '')
   const hasServices = computed(() => servicesTitle.value !== '' || serviceItems.value.length > 0)
-  const hasContactLinks = computed(() => !!(contactConfig.value?.telegram || contactConfig.value?.whatsapp))
+  const supportEmail = '527821823@qq.com'
+  const hasContactLinks = computed(() => !!(contactConfig.value?.telegram || contactConfig.value?.whatsapp || supportEmail))
   const hasContact = computed(() => contactTitle.value !== '' || contactText.value !== '' || hasContactLinks.value)
 
   onMounted(async () => {
@@ -68,6 +74,7 @@ export function useAbout() {
 
   return {
     contactConfig,
+    supportEmail,
     heroTitle,
     heroSubtitle,
     introductionText,

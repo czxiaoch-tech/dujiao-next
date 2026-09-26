@@ -3,6 +3,39 @@
     <!-- 站长配置的横幅轮播（两种模式共用，顶部展示） -->
     <VaultBannerHero />
 
+    <section class="mx-auto w-full max-w-[1180px] px-4 pb-3 pt-6 sm:px-6">
+      <div class="grid gap-5 rounded-[18px] border bg-card p-6 shadow-sm lg:grid-cols-[1.2fr_.8fr] lg:p-8">
+        <div>
+          <div class="vault-section-label">正式销售 / ChatGPT Plus</div>
+          <h1 class="mt-2 max-w-[720px] text-[32px] font-black leading-tight tracking-[-0.035em] sm:text-[42px]">
+            ChatGPT Plus 月度订阅
+            <span class="text-primary">¥120.80</span>
+          </h1>
+          <p class="mt-3 max-w-[720px] text-[15px] leading-7 text-muted-foreground">
+            支付后自动获取产品码，回本站兑换并填写充值账号，随后进入人工履约。当前 Plus 已完成真实交易全链验证。
+          </p>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <Button v-if="plusSale.checkoutUrl" as-child class="h-11 rounded-full px-6 font-black">
+              <a :href="plusSale.checkoutUrl" target="_blank" rel="noopener noreferrer">立即购买 Plus</a>
+            </Button>
+            <Button as-child variant="outline" class="h-11 rounded-full px-6 font-black">
+              <RouterLink to="/me/gift-cards?template=vault">已有产品码，去兑换</RouterLink>
+            </Button>
+          </div>
+          <p class="mt-4 text-xs leading-relaxed text-muted-foreground">
+            本站为独立第三方数字服务站，并非 OpenAI 官方网站，也不代表 OpenAI。ChatGPT / OpenAI 等名称及商标归其权利人所有。
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 self-stretch">
+          <div class="rounded-xl bg-secondary p-4"><div class="text-xs font-black text-primary">01</div><div class="mt-1 font-bold">支付宝付款</div><p class="mt-1 text-xs leading-5 text-muted-foreground">由 CatFK 平台完成收款。</p></div>
+          <div class="rounded-xl bg-secondary p-4"><div class="text-xs font-black text-primary">02</div><div class="mt-1 font-bold">自动发码</div><p class="mt-1 text-xs leading-5 text-muted-foreground">付款后自动收到产品码。</p></div>
+          <div class="rounded-xl bg-secondary p-4"><div class="text-xs font-black text-primary">03</div><div class="mt-1 font-bold">本站兑换</div><p class="mt-1 text-xs leading-5 text-muted-foreground">登录后输入产品码与充值账号。</p></div>
+          <div class="rounded-xl bg-secondary p-4"><div class="text-xs font-black text-primary">04</div><div class="mt-1 font-bold">人工履约</div><p class="mt-1 text-xs leading-5 text-muted-foreground">订单进入人工处理，可查状态。</p></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ==================== 列表模式 ==================== -->
     <template v-if="isListMode">
       <section class="mx-auto w-full max-w-[1180px] px-4 py-6 sm:px-6">
@@ -179,6 +212,7 @@ import { Button } from '@/components/ui/button'
 import { categoryAPI, postAPI, productAPI } from '../../api'
 import { buildCategoryGroups, type PublicCategory } from '../../utils/category'
 import { getImageUrl } from '../../utils/image'
+import { getPublicSaleConfig } from '../../utils/publicSales'
 import { useLocalized } from '../../composables/useProduct'
 import { useProductList } from '../../composables/useProductList'
 import { useProductListGroups } from '../../composables/useProductListGroups'
@@ -196,6 +230,7 @@ const route = useRoute()
 const { t } = useI18n()
 const { getLocalizedText } = useLocalized()
 const appStore = useAppStore()
+const plusSale = getPublicSaleConfig('chatgpt-plus')
 
 const isListMode = computed(() => appStore.config?.template_mode === 'list')
 

@@ -99,7 +99,8 @@
             <img v-if="brandLogo" :src="brandLogo" :alt="brandName" class="h-8 max-w-[160px] object-contain" />
             <span v-else>{{ brandName }}</span>
           </RouterLink>
-          <p class="mt-3 max-w-[36ch] text-[14.5px] text-muted-foreground">{{ brandDescription || t('vault.footer.tagline') }}</p>
+          <p class="mt-3 max-w-[42ch] text-[14.5px] text-muted-foreground">{{ salesTagline }}</p>
+          <p class="mt-2 max-w-[44ch] text-xs leading-5 text-[#8f9992]">独立第三方数字服务站 · 非 OpenAI 官方网站</p>
         </div>
         <div>
           <h4 class="mb-3 text-sm font-bold text-white">{{ t('vault.footer.shop') }}</h4>
@@ -113,7 +114,8 @@
           <RouterLink v-if="aboutEnabled" to="/about" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><Info class="h-4 w-4" /> {{ t('nav.about') }}</RouterLink>
           <RouterLink v-if="!userAuthStore.isAuthenticated" to="/guest/orders" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><ClipboardList class="h-4 w-4" /> {{ t('navbar.guestOrders') }}</RouterLink>
           <a v-if="contact?.telegram" :href="contact.telegram" target="_blank" rel="noopener noreferrer" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><Send class="h-4 w-4" /> 电报联系</a>
-          <a v-if="contact?.whatsapp" :href="contact.whatsapp" target="_blank" rel="noopener noreferrer" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><MessageCircle class="h-4 w-4" /> 海外联系</a>
+          <a v-if="contact?.whatsapp" :href="contact.whatsapp" target="_blank" rel="noopener noreferrer" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary"><MessageCircle class="h-4 w-4" /> WhatsApp</a>
+          <a :href="`mailto:${supportEmail}`" class="flex items-center gap-[7px] py-[5px] text-[14.5px] text-muted-foreground hover:text-primary">邮件联系</a>
         </div>
         <div>
           <h4 class="mb-3 text-sm font-bold text-white">{{ t('vault.footer.legal') }}</h4>
@@ -215,7 +217,25 @@ const footerLinks = computed(() => {
     .filter((item) => item.name)
 })
 
-const contact = computed(() => appStore.config?.contact as { telegram?: string; whatsapp?: string } | undefined)
+const supportEmail = '527821823@qq.com'
+const normalizeExternalContact = (raw: unknown) => {
+  const value = String(raw || '').trim()
+  return /^https?:\/\//i.test(value) ? value : ''
+}
+const contact = computed(() => {
+  const raw = appStore.config?.contact as { telegram?: string; whatsapp?: string } | undefined
+  return {
+    telegram: normalizeExternalContact(raw?.telegram),
+    whatsapp: normalizeExternalContact(raw?.whatsapp),
+  }
+})
+const salesTagline = computed(() => {
+  const raw = brandDescription.value
+  if (!raw || raw.includes('付款即交付')) {
+    return '数字订阅服务：付款后自动获取产品码，本站兑换后进入人工履约。'
+  }
+  return raw
+})
 
 const cartCount = computed(() => cartStore.totalItems)
 

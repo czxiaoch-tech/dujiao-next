@@ -18,9 +18,9 @@
 
         <template v-else>
           <div class="mb-7 text-center">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">{{ brandSiteName }}</p>
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">人工智能订阅服务站</p>
             <h1 class="mt-3 text-3xl font-extrabold">{{ t('auth.register.title') }}</h1>
-            <p class="mt-2 text-sm text-muted-foreground">{{ t('auth.register.subtitle') }}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{{ emailVerificationEnabled ? t('auth.register.subtitle') : '使用邮箱创建账号，注册后即可兑换产品码并查看履约状态。' }}</p>
           </div>
 
           <form class="grid gap-[18px]" @submit.prevent="handleRegister">
@@ -190,7 +190,7 @@ import { useRegister } from '../../../composables/useRegister'
 const { t } = useI18n()
 
 const {
-  userAuthStore, brandSiteName,
+  userAuthStore,
   email, emailLocalPart, selectedEmailDomain, password, showPassword, code, agreed,
   passwordStrength, error, sending, countdown,
   captchaPayload, turnstileToken, imageCaptchaRef, turnstileRef,

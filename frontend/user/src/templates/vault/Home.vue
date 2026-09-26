@@ -187,6 +187,39 @@
       </section>
     </template>
 
+    <section class="mx-auto w-full max-w-[1180px] px-4 py-8 sm:px-6">
+      <div class="rounded-[18px] border bg-card p-6 shadow-sm sm:p-8">
+        <div class="vault-section-label">购买前须知 / FAQ</div>
+        <h2 class="mt-2 text-[28px] font-black">第一次购买，先看这 4 个问题</h2>
+        <div class="mt-5 grid gap-3 md:grid-cols-2">
+          <div class="rounded-xl bg-secondary p-5">
+            <div class="font-bold">付款后在哪里拿产品码？</div>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">支付宝付款成功后，CatFK 订单结果页会自动显示本次购买的产品码。请妥善保存，不要公开分享。</p>
+          </div>
+          <div class="rounded-xl bg-secondary p-5">
+            <div class="font-bold">为什么拿到产品码后还要回本站？</div>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">CatFK 负责支付和自动发码；本站负责产品码兑换、提交充值账号和后续人工履约，两边共同组成完整交付链。</p>
+          </div>
+          <div class="rounded-xl bg-secondary p-5">
+            <div class="font-bold">提交兑换后多久完成？</div>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">提交后订单会进入人工履约队列，处理进度以个人中心显示的订单状态为准；如出现异常，可通过本站公开联系入口咨询。</p>
+          </div>
+          <div class="rounded-xl bg-secondary p-5">
+            <div class="font-bold">产品码或订单有问题怎么办？</div>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">产品码未使用、订单尚未进入履约时可先联系售后；产品码已使用或履约已开始后，将根据订单实际状态处理退款或补救。</p>
+          </div>
+        </div>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <Button as-child variant="outline" class="rounded-full">
+            <RouterLink to="/terms">查看服务条款</RouterLink>
+          </Button>
+          <Button as-child variant="ghost" class="rounded-full">
+            <a href="mailto:527821823@qq.com">联系售后</a>
+          </Button>
+        </div>
+      </div>
+    </section>
+
     <ProductQuickBuy
       v-if="quickBuyProduct"
       :product="quickBuyProduct"

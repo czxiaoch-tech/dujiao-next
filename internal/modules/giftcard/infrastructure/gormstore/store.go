@@ -17,24 +17,29 @@ const listStatusExpired = "expired"
 
 // Store 是礼品卡仓储端口的 GORM 实现。
 type Store struct {
-	db *gorm.DB
+	db    *gorm.DB
+	codec *codeCodec
 }
 
-func New(db *gorm.DB) *Store {
-	return &Store{db: db}
+func New(db *gorm.DB, secret ...string) *Store {
+	var codec *codeCodec
+	if len(secret) > 0 {
+		codec = newCodeCodec(secret[0])
+	}
+	return &Store{db: db, codec: codec}
 }
 
 func (r *Store) WithTx(tx *gorm.DB) *Store {
 	if tx == nil {
 		return r
 	}
-	return &Store{db: tx}
+	return &Store{db: tx, codec: r.codec}
 }
 
 // WithinTransaction 为管理用例提供不暴露 GORM 的事务边界。
 func (r *Store) WithinTransaction(fn func(repo giftcardcontract.Repository) error) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		return fn(New(tx))
+		return fn(r.WithTx(tx))
 	})
 }
 
@@ -47,6 +52,11 @@ func (r *Store) Transaction(fn func(tx *gorm.DB) error) error {
 func (r *Store) CreateBatch(batch *giftcarddomain.GiftCardBatch, cards []giftcarddomain.GiftCard) error {
 	if batch == nil {
 		return errors.New("invalid gift card batch")
+	}
+	for idx := range cards {
+		if err := r.prepareCardForStorage(&cards[idx]); err != nil {
+			return err
+		}
 	}
 	if err := r.db.Create(batch).Error; err != nil {
 		return err
@@ -74,40 +84,70 @@ func (r *Store) GetByID(id uint) (*giftcarddomain.GiftCard, error) {
 		}
 		return nil, err
 	}
+	r.hydrateCardMask(&card)
 	return &card, nil
 }
 
 // GetByCode 根据卡密查询礼品卡，不消耗卡密。
 func (r *Store) GetByCode(code string) (*giftcarddomain.GiftCard, error) {
-	code = strings.TrimSpace(strings.ToUpper(code))
+	code = normalizeCode(code)
 	if code == "" {
 		return nil, nil
 	}
 	var card giftcarddomain.GiftCard
-	if err := r.db.Where("deleted_at IS NULL AND code = ?", code).First(&card).Error; err != nil {
+	if r.codec != nil {
+		hash := r.codec.lookupHash(code)
+		err := r.db.Where("deleted_at IS NULL AND code_hash = ?", hash).First(&card).Error
+		if err == nil {
+			r.hydrateCardMask(&card)
+			return &card, nil
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+	}
+	if err := r.db.Where(
+		"deleted_at IS NULL AND (code_hash IS NULL OR code_hash = '') AND code = ?",
+		code,
+	).First(&card).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
+	r.hydrateCardMask(&card)
 	return &card, nil
 }
 
 // GetByCodeForUpdate 根据卡密加锁查询礼品卡。
 func (r *Store) GetByCodeForUpdate(code string) (*giftcarddomain.GiftCard, error) {
-	code = strings.TrimSpace(strings.ToUpper(code))
+	code = normalizeCode(code)
 	if code == "" {
 		return nil, nil
 	}
 	var card giftcarddomain.GiftCard
+	if r.codec != nil {
+		hash := r.codec.lookupHash(code)
+		err := r.db.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("deleted_at IS NULL AND code_hash = ?", hash).
+			First(&card).Error
+		if err == nil {
+			r.hydrateCardMask(&card)
+			return &card, nil
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+	}
 	if err := r.db.Clauses(clause.Locking{Strength: "UPDATE"}).
-		Where("deleted_at IS NULL AND code = ?", code).
+		Where("deleted_at IS NULL AND (code_hash IS NULL OR code_hash = '') AND code = ?", code).
 		First(&card).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
+	r.hydrateCardMask(&card)
 	return &card, nil
 }
 
@@ -116,8 +156,16 @@ func (r *Store) List(filter giftcardcontract.ListFilter) ([]giftcarddomain.GiftC
 	query := r.db.Model(&giftcarddomain.GiftCard{}).
 		Where("gift_cards.deleted_at IS NULL").
 		Preload("Batch", "deleted_at IS NULL")
-	if code := strings.TrimSpace(strings.ToUpper(filter.Code)); code != "" {
-		query = query.Where("code LIKE ?", "%"+code+"%")
+	if code := normalizeCode(filter.Code); code != "" {
+		if r.codec != nil {
+			query = query.Where(
+				"(code_hash = ? OR ((code_hash IS NULL OR code_hash = '') AND code = ?))",
+				r.codec.lookupHash(code),
+				code,
+			)
+		} else {
+			query = query.Where("(code_hash IS NULL OR code_hash = '') AND code = ?", code)
+		}
 	}
 	if status := strings.TrimSpace(filter.Status); status != "" {
 		now := time.Now()
@@ -167,6 +215,9 @@ func (r *Store) List(filter giftcardcontract.ListFilter) ([]giftcarddomain.GiftC
 	if err := query.Order("id desc").Find(&cards).Error; err != nil {
 		return nil, 0, err
 	}
+	for idx := range cards {
+		r.hydrateCardMask(&cards[idx])
+	}
 	return cards, total, nil
 }
 
@@ -180,6 +231,9 @@ func (r *Store) ListByIDs(ids []uint) ([]giftcarddomain.GiftCard, error) {
 		Preload("Batch", "deleted_at IS NULL").
 		Order("id asc").Find(&cards).Error; err != nil {
 		return nil, err
+	}
+	for idx := range cards {
+		r.hydrateCardMask(&cards[idx])
 	}
 	return cards, nil
 }

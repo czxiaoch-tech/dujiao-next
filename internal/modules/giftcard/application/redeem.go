@@ -134,7 +134,7 @@ func (s *Service) RedeemGiftCard(input RedeemInput) (*giftcarddomain.GiftCard, *
 			Currency:  card.Currency,
 			TxnType:   constants.WalletTxnTypeGiftCard,
 			Reference: fmt.Sprintf("gift_card:%d", card.ID),
-			Remark:    fmt.Sprintf("礼品卡兑换：%s", card.Code),
+			Remark:    fmt.Sprintf("礼品卡兑换：%s", card.CodeMasked),
 		})
 		if err != nil {
 			return err

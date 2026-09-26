@@ -7,9 +7,14 @@ import (
 	"time"
 
 	giftcardcontract "github.com/dujiao-next/internal/modules/giftcard/contract"
+	giftcarddomain "github.com/dujiao-next/internal/modules/giftcard/domain"
 
 	"github.com/dujiao-next/internal/constants"
 )
+
+type giftCardCodeRevealer interface {
+	RevealCode(card *giftcarddomain.GiftCard) (string, error)
+}
 
 // Export 导出礼品卡。
 func (s *Service) Export(ids []uint, format string) ([]byte, string, error) {
@@ -33,10 +38,19 @@ func (s *Service) Export(ids []uint, format string) ([]byte, string, error) {
 		return nil, "", giftcardcontract.ErrNotFound
 	}
 
+	revealedCodes := make(map[uint]string, len(cards))
+	for idx := range cards {
+		code, err := revealGiftCardCode(s.repo, &cards[idx])
+		if err != nil {
+			return nil, "", giftcardcontract.ErrFetchFailed
+		}
+		revealedCodes[cards[idx].ID] = code
+	}
+
 	if normalizedFormat == constants.ExportFormatTXT {
 		lines := make([]string, 0, len(cards))
 		for _, card := range cards {
-			lines = append(lines, strings.TrimSpace(card.Code))
+			lines = append(lines, revealedCodes[card.ID])
 		}
 		return []byte(strings.Join(lines, "\n")), "text/plain; charset=utf-8", nil
 	}
@@ -91,7 +105,7 @@ func (s *Service) Export(ids []uint, format string) ([]byte, string, error) {
 			strconv.FormatUint(uint64(card.ID), 10),
 			batchNo,
 			card.Name,
-			card.Code,
+			revealedCodes[card.ID],
 			card.Amount.String(),
 			card.Currency,
 			redeemType,
@@ -113,4 +127,17 @@ func (s *Service) Export(ids []uint, format string) ([]byte, string, error) {
 		return nil, "", giftcardcontract.ErrFetchFailed
 	}
 	return []byte(builder.String()), "text/csv; charset=utf-8", nil
+}
+
+func revealGiftCardCode(repo giftcardcontract.Repository, card *giftcarddomain.GiftCard) (string, error) {
+	if card == nil {
+		return "", giftcardcontract.ErrFetchFailed
+	}
+	if revealer, ok := repo.(giftCardCodeRevealer); ok {
+		return revealer.RevealCode(card)
+	}
+	if card.CodeHash != nil {
+		return "", giftcardcontract.ErrFetchFailed
+	}
+	return strings.TrimSpace(card.Code), nil
 }

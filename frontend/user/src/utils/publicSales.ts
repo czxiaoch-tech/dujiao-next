@@ -10,6 +10,10 @@ const PUBLIC_SALES: Record<string, PublicSaleConfig> = {
     state: 'live',
     checkoutUrl: 'https://catfk.com/item/sj2q9t',
   },
+  'gpt-remote-setup': {
+    state: 'live',
+    checkoutUrl: 'https://catfk.com/item/gy82iy',
+  },
   'chatgpt-pro-5x': { state: 'coming_soon' },
   'chatgpt-pro-20x': { state: 'coming_soon' },
   'chatgpt-ios-pro-20x': { state: 'coming_soon' },

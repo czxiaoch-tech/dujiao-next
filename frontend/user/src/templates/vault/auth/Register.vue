@@ -190,7 +190,7 @@ import { useRegister } from '../../../composables/useRegister'
 const { t } = useI18n()
 
 const {
-  userAuthStore, brandSiteName,
+  userAuthStore,
   email, emailLocalPart, selectedEmailDomain, password, showPassword, code, agreed,
   passwordStrength, error, sending, countdown,
   captchaPayload, turnstileToken, imageCaptchaRef, turnstileRef,

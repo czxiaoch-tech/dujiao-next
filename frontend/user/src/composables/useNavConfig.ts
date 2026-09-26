@@ -83,8 +83,9 @@ export const useNavConfig = () => {
     /** 列表模式下首页即商品列表，/products 与首页同页，导航里不再单独列一项 */
     const isListMode = computed(() => appStore.config?.template_mode === 'list')
 
-    const blogEnabled = computed(() => navConfig.value?.builtin?.blog !== false)
-    const noticeEnabled = computed(() => navConfig.value?.builtin?.notice !== false)
+    // Public sales V1: empty editorial sections stay hidden until real content is published.
+    const blogEnabled = computed(() => false)
+    const noticeEnabled = computed(() => false)
     const aboutEnabled = computed(() => navConfig.value?.builtin?.about !== false)
 
     /** 内置导航项（博客 / 公告 / 关于），受后台开关控制 */
@@ -92,6 +93,7 @@ export const useNavConfig = () => {
         const builtin = navConfig.value?.builtin
         const result: NavItem[] = []
         for (const [key, def] of Object.entries(builtinNavDefs)) {
+            if (key === 'blog' || key === 'notice') continue
             if (builtin && builtin[key] === false) continue
             result.push({ key, path: def.path, label: t(def.label), icon: def.icon, type: 'route', target: '_self' })
         }

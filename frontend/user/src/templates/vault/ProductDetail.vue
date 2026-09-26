@@ -52,7 +52,14 @@
               <component :is="product.fulfillment_type === 'auto' ? Zap : Pencil" class="h-3.5 w-3.5" />
               {{ getFulfillmentTypeLabel(product.fulfillment_type) }}
             </span>
-            <span class="inline-flex items-center gap-1.5 rounded-[7px] px-2.5 py-1 text-[12px] font-bold" :class="product.purchase_type === 'guest' ? 'bg-[color:var(--gold-soft)] text-[color:var(--gold-strong)]' : 'bg-[color:var(--teal-soft)] text-[color:var(--teal-strong)]'">
+            <span v-if="publicSale.state === 'live'" class="inline-flex items-center gap-1.5 rounded-[7px] bg-[color:var(--gold-soft)] px-2.5 py-1 text-[12px] font-bold text-[color:var(--gold-strong)]">
+              <Zap class="h-3.5 w-3.5" />
+              已开放购买
+            </span>
+            <span v-else-if="publicSale.state === 'coming_soon'" class="inline-flex items-center gap-1.5 rounded-[7px] bg-secondary px-2.5 py-1 text-[12px] font-bold text-muted-foreground">
+              即将开放
+            </span>
+            <span v-else class="inline-flex items-center gap-1.5 rounded-[7px] px-2.5 py-1 text-[12px] font-bold" :class="product.purchase_type === 'guest' ? 'bg-[color:var(--gold-soft)] text-[color:var(--gold-strong)]' : 'bg-[color:var(--teal-soft)] text-[color:var(--teal-strong)]'">
               <component :is="product.purchase_type === 'guest' ? UserPlus : Lock" class="h-3.5 w-3.5" />
               {{ getPurchaseTypeLabel(product.purchase_type) }}
             </span>
@@ -157,7 +164,7 @@
           </div>
 
           <!-- 数量 -->
-          <div class="my-5">
+          <div v-if="publicSale.state === 'native'" class="my-5">
             <div class="mb-2.5 text-[13px] font-bold uppercase tracking-[0.04em] text-muted-foreground">{{ t('productDetail.quantity') }}</div>
             <div class="inline-flex items-center overflow-hidden rounded-full border-2 border-hairline-strong">
               <button type="button" class="grid h-11 w-[42px] place-items-center bg-card text-foreground disabled:opacity-35" :aria-label="t('productDetail.quantity')" :disabled="quantity <= quantityEffectiveMin" @click="quantity = Math.max(quantityEffectiveMin, quantity - 1)"><Minus class="h-[17px] w-[17px]" /></button>
@@ -167,22 +174,49 @@
           </div>
 
           <!-- 提示 -->
-          <div v-if="cannotPurchaseReason" class="my-3.5 rounded-sm bg-destructive/10 px-3.5 py-2.5 text-sm font-semibold text-destructive">{{ cannotPurchaseReason }}</div>
-          <div v-if="purchaseWarning" class="my-3.5 rounded-sm bg-warning/10 px-3.5 py-2.5 text-sm font-semibold text-warning">{{ purchaseWarning }}</div>
+          <div v-if="publicSale.state === 'native' && cannotPurchaseReason" class="my-3.5 rounded-sm bg-destructive/10 px-3.5 py-2.5 text-sm font-semibold text-destructive">{{ cannotPurchaseReason }}</div>
+          <div v-if="publicSale.state === 'native' && purchaseWarning" class="my-3.5 rounded-sm bg-warning/10 px-3.5 py-2.5 text-sm font-semibold text-warning">{{ purchaseWarning }}</div>
 
           <!-- 操作 -->
           <div ref="purchaseActionsRef" class="mt-[18px] flex flex-wrap gap-3">
-            <Button v-if="requiresLogin" class="vault-primary-action h-12 w-full text-[16px] font-black" @click="goLogin">{{ t('productDetail.loginToBuy') }}</Button>
+            <template v-if="publicSale.state === 'live' && publicSale.checkoutUrl">
+              <Button as-child class="vault-primary-action h-12 flex-1 text-[16px] font-black">
+                <a :href="publicSale.checkoutUrl" target="_blank" rel="noopener noreferrer"><Zap /> 立即购买</a>
+              </Button>
+              <Button as-child variant="outline" class="vault-secondary-action h-12 text-[16px] font-black">
+                <RouterLink to="/me/gift-cards?template=vault">已有产品码，去兑换</RouterLink>
+              </Button>
+            </template>
+            <Button v-else-if="publicSale.state === 'coming_soon'" class="vault-primary-action h-12 w-full text-[16px] font-black" disabled>即将开放购买</Button>
             <template v-else>
-              <Button class="vault-primary-action h-12 flex-1 text-[16px] font-black" :disabled="!canPurchase" @click="buyNow"><Zap /> {{ t('productDetail.buyNow') }}</Button>
-              <Button variant="outline" class="vault-secondary-action h-12 text-[16px] font-black" :disabled="!canPurchase" @click="addToCart"><ShoppingCart /> {{ t('productDetail.addToCart') }}</Button>
+              <Button v-if="requiresLogin" class="vault-primary-action h-12 w-full text-[16px] font-black" @click="goLogin">{{ t('productDetail.loginToBuy') }}</Button>
+              <template v-else>
+                <Button class="vault-primary-action h-12 flex-1 text-[16px] font-black" :disabled="!canPurchase" @click="buyNow"><Zap /> {{ t('productDetail.buyNow') }}</Button>
+                <Button variant="outline" class="vault-secondary-action h-12 text-[16px] font-black" :disabled="!canPurchase" @click="addToCart"><ShoppingCart /> {{ t('productDetail.addToCart') }}</Button>
+              </template>
             </template>
           </div>
 
           <div class="mt-4 flex items-center gap-3 rounded-md bg-[color:var(--teal-soft)] px-[18px] py-3.5 text-[color:var(--teal-strong)]">
             <TicketCheck class="h-[22px] w-[22px] flex-none" />
-            <span class="text-sm font-semibold">{{ t('productDetail.deliveryReassurance') }}</span>
+            <span v-if="publicSale.state === 'live'" class="text-sm font-semibold">CatFK 完成支付后自动发放产品码；回本站兑换后进入人工履约。</span>
+            <span v-else-if="publicSale.state === 'coming_soon'" class="text-sm font-semibold">该商品正在准备正式销售链路，暂不接受付款。</span>
+            <span v-else class="text-sm font-semibold">{{ t('productDetail.deliveryReassurance') }}</span>
           </div>
+        </div>
+      </section>
+
+      <section v-if="publicSale.state === 'live'" class="py-8">
+        <div class="rounded-[14px] border bg-card p-6 sm:p-7">
+          <div class="vault-section-label">购买流程</div>
+          <h2 class="mt-2 text-2xl font-extrabold">4 步完成购买与交付</h2>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">01</div><div class="mt-1 font-bold">CatFK 支付</div><p class="mt-1 text-sm text-muted-foreground">进入本站指定购买页，完成支付宝付款。</p></div>
+            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">02</div><div class="mt-1 font-bold">自动获取产品码</div><p class="mt-1 text-sm text-muted-foreground">付款成功后，CatFK 自动发放 1 张产品码。</p></div>
+            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">03</div><div class="mt-1 font-bold">回本站兑换</div><p class="mt-1 text-sm text-muted-foreground">登录本站，在个人中心输入产品码并填写充值账号。</p></div>
+            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">04</div><div class="mt-1 font-bold">人工履约</div><p class="mt-1 text-sm text-muted-foreground">提交后进入人工履约队列，可在个人中心查看订单状态。</p></div>
+          </div>
+          <p class="mt-4 text-xs leading-relaxed text-muted-foreground">本站为独立第三方数字服务站，并非 OpenAI 官方网站，也不代表 OpenAI。ChatGPT / OpenAI 等名称及商标归其权利人所有。</p>
         </div>
       </section>
 
@@ -216,7 +250,7 @@
 
       <!-- 移动端固定购买条 -->
       <VaultProductMobileBar
-        :visible="showMobileBar && !!product && !loading"
+        :visible="showMobileBar && !!product && !loading && publicSale.state === 'native'"
         :requires-login="requiresLogin"
         :can-purchase="canPurchase"
         :show-member-price="mobileBarShowMemberPrice"
@@ -255,6 +289,7 @@ import {
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { processHtmlForDisplay } from '../../utils/content'
+import { getPublicSaleConfig } from '../../utils/publicSales'
 import { useProductDetail } from '../../composables/useProductDetail'
 import VaultProductMobileBar from './components/VaultProductMobileBar.vue'
 
@@ -302,6 +337,8 @@ const {
   mobileBarShowSkuPrice, mobileBarSkuPriceDisplay,
   mobileBarShowProductPromotionPrice, mobileBarProductPromotionPriceDisplay, mobileBarProductPriceDisplay,
 } = useProductDetail({ onLoaded: () => setupMobileBarObserver() })
+
+const publicSale = computed(() => getPublicSaleConfig(product.value?.slug))
 
 const stockPillTone = computed(() => {
   const variant = getStockBadgeVariant(product.value?.stock_status)

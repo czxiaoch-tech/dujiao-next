@@ -199,7 +199,7 @@
 
           <div class="mt-4 flex items-center gap-3 rounded-md bg-[color:var(--teal-soft)] px-[18px] py-3.5 text-[color:var(--teal-strong)]">
             <TicketCheck class="h-[22px] w-[22px] flex-none" />
-            <span v-if="publicSale.state === 'live'" class="text-sm font-semibold">CatFK 完成支付后自动发放产品码；回本站兑换后进入人工履约。</span>
+            <span v-if="publicSale.state === 'live'" class="text-sm font-semibold">{{ isRemoteSetupService ? 'CatFK 完成支付后自动发放服务码；回本站兑换并填写服务信息后进入人工接单。' : 'CatFK 完成支付后自动发放产品码；回本站兑换后进入人工履约。' }}</span>
             <span v-else-if="publicSale.state === 'coming_soon'" class="text-sm font-semibold">该商品正在准备正式销售链路，暂不接受付款。</span>
             <span v-else class="text-sm font-semibold">{{ t('productDetail.deliveryReassurance') }}</span>
           </div>
@@ -212,9 +212,9 @@
           <h2 class="mt-2 text-2xl font-extrabold">4 步完成购买与交付</h2>
           <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">01</div><div class="mt-1 font-bold">CatFK 支付</div><p class="mt-1 text-sm text-muted-foreground">进入本站指定购买页，完成支付宝付款。</p></div>
-            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">02</div><div class="mt-1 font-bold">自动获取产品码</div><p class="mt-1 text-sm text-muted-foreground">付款成功后，CatFK 自动发放 1 张产品码。</p></div>
-            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">03</div><div class="mt-1 font-bold">回本站兑换</div><p class="mt-1 text-sm text-muted-foreground">登录本站，在个人中心输入产品码并填写充值账号。</p></div>
-            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">04</div><div class="mt-1 font-bold">人工履约</div><p class="mt-1 text-sm text-muted-foreground">提交后进入人工履约队列，可在个人中心查看订单状态。</p></div>
+            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">02</div><div class="mt-1 font-bold">{{ isRemoteSetupService ? '自动获取服务码' : '自动获取产品码' }}</div><p class="mt-1 text-sm text-muted-foreground">{{ isRemoteSetupService ? '付款成功后，CatFK 自动发放 1 张服务兑换码。' : '付款成功后，CatFK 自动发放 1 张产品码。' }}</p></div>
+            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">03</div><div class="mt-1 font-bold">回本站兑换</div><p class="mt-1 text-sm text-muted-foreground">{{ isRemoteSetupService ? '登录本站，在个人中心输入服务码并填写联系方式、问题类型和问题描述。' : '登录本站，在个人中心输入产品码并填写充值账号。' }}</p></div>
+            <div class="rounded-lg bg-secondary p-4"><div class="text-xs font-black text-primary">04</div><div class="mt-1 font-bold">{{ isRemoteSetupService ? '人工接单' : '人工履约' }}</div><p class="mt-1 text-sm text-muted-foreground">{{ isRemoteSetupService ? '提交后进入人工接单，工作人员会按你填写的联系方式联系并约定远程协助时间。' : '提交后进入人工履约队列，可在个人中心查看订单状态。' }}</p></div>
           </div>
           <p class="mt-4 text-xs leading-relaxed text-muted-foreground">本站为独立第三方数字服务站，并非 OpenAI 官方网站，也不代表 OpenAI。ChatGPT / OpenAI 等名称及商标归其权利人所有。</p>
         </div>
@@ -339,6 +339,7 @@ const {
 } = useProductDetail({ onLoaded: () => setupMobileBarObserver() })
 
 const publicSale = computed(() => getPublicSaleConfig(product.value?.slug))
+const isRemoteSetupService = computed(() => product.value?.slug === 'gpt-remote-setup')
 
 const stockPillTone = computed(() => {
   const variant = getStockBadgeVariant(product.value?.stock_status)

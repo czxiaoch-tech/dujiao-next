@@ -63,7 +63,13 @@ export function useAbout() {
   const hasIntroduction = computed(() => introductionText.value !== '')
   const hasServices = computed(() => servicesTitle.value !== '' || serviceItems.value.length > 0)
   const supportEmail = '527821823@qq.com'
-  const hasContactLinks = computed(() => !!(contactConfig.value?.telegram || contactConfig.value?.whatsapp || supportEmail))
+  const normalizeExternalContact = (raw: unknown) => {
+    const value = String(raw || '').trim()
+    return /^https?:\/\//i.test(value) ? value : ''
+  }
+  const telegramUrl = computed(() => normalizeExternalContact(contactConfig.value?.telegram))
+  const whatsappUrl = computed(() => normalizeExternalContact(contactConfig.value?.whatsapp))
+  const hasContactLinks = computed(() => !!(telegramUrl.value || whatsappUrl.value || supportEmail))
   const hasContact = computed(() => contactTitle.value !== '' || contactText.value !== '' || hasContactLinks.value)
 
   onMounted(async () => {
@@ -75,6 +81,8 @@ export function useAbout() {
   return {
     contactConfig,
     supportEmail,
+    telegramUrl,
+    whatsappUrl,
     heroTitle,
     heroSubtitle,
     introductionText,

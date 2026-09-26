@@ -37,7 +37,17 @@
       </div>
 
       <button
-        v-if="!soldOut"
+        v-if="!soldOut && publicSale.state === 'live'"
+        type="button"
+        class="vault-shop-buy mt-4"
+        aria-label="立即购买"
+        @click.prevent.stop="openPublicCheckout"
+      >
+        立即购买
+        <ArrowRight class="h-4 w-4" />
+      </button>
+      <button
+        v-else-if="!soldOut && publicSale.state === 'native'"
         type="button"
         class="vault-shop-buy mt-4"
         :aria-label="t('products.quickBuyAria')"
@@ -46,6 +56,9 @@
         {{ t('products.quickBuy') }}
         <ArrowRight class="h-4 w-4" />
       </button>
+      <span v-else-if="!soldOut" class="vault-shop-buy mt-4 cursor-not-allowed opacity-55">
+        即将开放
+      </span>
       <span v-else class="vault-shop-buy mt-4 cursor-not-allowed opacity-45">
         {{ t('products.stockStatus.outOfStock') }}
       </span>
@@ -59,6 +72,7 @@ import { useI18n } from 'vue-i18n'
 import { AlarmClock, ArrowRight, Package, Pencil, XCircle, Zap } from 'lucide-vue-next'
 import { getFirstImageUrl, getImageUrl } from '../../../utils/image'
 import { useLocalized, useProductLabels } from '../../../composables/useProduct'
+import { getPublicSaleConfig } from '../../../utils/publicSales'
 
 const props = withDefaults(defineProps<{ product: any; index?: number }>(), { index: 0 })
 
@@ -87,6 +101,13 @@ const title = computed(() => getLocalizedText(props.product?.title))
 const soldOut = computed(() => isSoldOut(props.product))
 const promo = computed(() => hasPromotionPrice(props.product))
 const displayPrice = computed(() => promo.value ? getPromotionPriceAmount(props.product) : props.product.price_amount)
+const publicSale = computed(() => getPublicSaleConfig(props.product?.slug))
+
+const openPublicCheckout = () => {
+  const url = publicSale.value.checkoutUrl
+  if (!url) return
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
 
 const imageErrored = ref(false)
 const coverImage = computed(() => {

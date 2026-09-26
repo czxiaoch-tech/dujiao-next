@@ -359,7 +359,11 @@ usePageSeo({
   title: () => {
     if (route.name === 'category-products') return seoCategoryName.value || t('nav.products')
     if (route.name === 'products') return t('nav.products')
-    return undefined
+    return 'ChatGPT Plus 购买与产品码兑换'
+  },
+  description: () => {
+    if (route.name !== 'home') return undefined
+    return 'ChatGPT Plus 月度订阅购买入口。付款后自动获取产品码，回本站兑换并提交充值账号，进入人工履约流程。'
   },
 })
 

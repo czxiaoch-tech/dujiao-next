@@ -314,6 +314,43 @@ func (c *Consumer) handlePlusAutoFulfill(ctx context.Context, task *asynq.Task) 
 	return nil
 }
 
+// handleKeleaiPro20xFulfill 处理 Keleai Pro20X 自动交付任务。
+// V0.1 不自动重试；业务失败保持 fulfilling，留给人工接管。
+func (c *Consumer) handleKeleaiPro20xFulfill(ctx context.Context, task *asynq.Task) error {
+	if c == nil || task == nil {
+		return nil
+	}
+	var payload queue.KeleaiPro20xFulfillPayload
+	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
+		logger.Warnw("worker_keleai_pro20x_invalid_payload")
+		return nil
+	}
+	if payload.OrderID == 0 || c.FulfillmentService == nil {
+		return nil
+	}
+	_, err := c.FulfillmentService.ExecuteKeleaiPro20xFulfillment(ctx, payload.OrderID)
+	if err == nil {
+		return nil
+	}
+	switch {
+	case errors.Is(err, fulfillmentapp.ErrFulfillmentExists):
+		logger.Debugw("worker_keleai_pro20x_skip_exists", "order_id", payload.OrderID)
+	case errors.Is(err, fulfillmentapp.ErrKeleaiPro20xExecutorUnavailable):
+		logger.Debugw("worker_keleai_pro20x_executor_unavailable", "order_id", payload.OrderID)
+	case errors.Is(err, fulfillmentapp.ErrKeleaiPro20xExecutionFailed):
+		logger.Warnw("worker_keleai_pro20x_failed", "order_id", payload.OrderID)
+	case errors.Is(err, fulfillmentapp.ErrFulfillmentNotKeleaiPro20x):
+		logger.Debugw("worker_keleai_pro20x_skip_wrong_product", "order_id", payload.OrderID)
+	case errors.Is(err, orderapp.ErrOrderStatusInvalid):
+		logger.Debugw("worker_keleai_pro20x_skip_invalid_status", "order_id", payload.OrderID)
+	case errors.Is(err, orderapp.ErrOrderNotFound):
+		logger.Debugw("worker_keleai_pro20x_skip_order_not_found", "order_id", payload.OrderID)
+	default:
+		logger.Warnw("worker_keleai_pro20x_internal_failed", "order_id", payload.OrderID)
+	}
+	return nil
+}
+
 // handleOrderTimeoutCancel 处理超时未支付订单自动取消任务。
 func (c *Consumer) handleOrderTimeoutCancel(_ context.Context, task *asynq.Task) error {
 	if c == nil || task == nil {

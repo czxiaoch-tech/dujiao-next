@@ -2,6 +2,7 @@ package rechargeportalhttp
 
 import (
 	"errors"
+	"os"
 	"strings"
 
 	rechargeportal "github.com/dujiao-next/internal/workflows/rechargeportal/application"
@@ -103,4 +104,15 @@ func respondError(c *gin.Context, err error) {
 	default:
 		ginutil.RespondError(c, response.CodeInternal, "error.gift_card_redeem_failed", nil)
 	}
+}
+
+
+func (h *Handler) Simulation(c *gin.Context) {
+	enabled := strings.TrimSpace(os.Getenv("MIRROR_RECHARGE_SIMULATION")) == "1"
+	data := gin.H{"enabled": enabled}
+	if enabled {
+		data["test_code"] = "ASO-SIM-PRO20X-001"
+		data["test_session_json"] = "{"user":{"email":"simulation@example.invalid"},"sessionToken":"simulation-session-token","accessToken":"simulation-access-token","account_id":"11111111-1111-1111-1111-111111111111"}"
+	}
+	response.Success(c, data)
 }

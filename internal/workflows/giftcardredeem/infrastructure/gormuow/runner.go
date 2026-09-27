@@ -116,7 +116,7 @@ func (tx *transaction) CreditWallet(input giftcardcontract.WalletCreditInput) (*
 // 产品码本身就是预付凭证，因此这里不再创建 Dujiao 支付单，也不再次扣钱包。
 func (tx *transaction) CreateProductOrder(input giftcardcontract.ProductOrderInput) (*orderdomain.Order, error) {
 	if tx == nil || tx.db == nil || tx.products == nil || tx.skus == nil ||
-		input.UserID == 0 || input.ProductID == 0 || input.SKUID == 0 {
+		input.ProductID == 0 || input.SKUID == 0 {
 		return nil, giftcardcontract.ErrInvalid
 	}
 

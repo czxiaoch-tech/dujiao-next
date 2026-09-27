@@ -16,6 +16,7 @@ import (
 	fulfillmentapp "github.com/dujiao-next/internal/modules/fulfillment/application"
 	fulfillmentqueue "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/queueadapter"
 	giftcardapp "github.com/dujiao-next/internal/modules/giftcard/application"
+	giftcardqueue "github.com/dujiao-next/internal/modules/giftcard/infrastructure/queueadapter"
 	giftcardsettingscurrency "github.com/dujiao-next/internal/modules/giftcard/infrastructure/settingscurrency"
 	memberlevelapp "github.com/dujiao-next/internal/modules/memberlevel/application"
 	orderapp "github.com/dujiao-next/internal/modules/order/application"
@@ -131,8 +132,9 @@ func (c *Container) initApplicationServices() {
 		Users:    c.UserStore,
 		Currency: giftcardsettingscurrency.New(c.SettingService),
 		Redeemer: giftcardredeemgormuow.NewWithProducts(c.GiftCardRepo, c.WalletService, c.ProductRepo, c.ProductSKURepo),
-		Products: c.ProductRepo,
-		SKUs:     c.ProductSKURepo,
+		Products:         c.ProductRepo,
+		SKUs:             c.ProductSKURepo,
+		PlusAutoFulfillQ: giftcardqueue.New(c.QueueClient),
 	})
 	c.CouponAdminService = couponapp.NewAdminService(c.CouponRepo)
 	c.PromotionAdminService = promotionapp.NewAdminService(c.PromotionRepo)

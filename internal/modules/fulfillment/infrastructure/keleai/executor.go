@@ -7,9 +7,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"html"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"strings"
 	"time"
@@ -41,10 +43,11 @@ type Executor struct {
 }
 
 func New(codes *giftcardgormstore.Store, appSecret string) *Executor {
+	jar, _ := cookiejar.New(nil)
 	return &Executor{
 		codes: codes,
 		session: sensitiveform.New(appSecret),
-		client: &http.Client{Timeout: 20 * time.Second},
+		client: &http.Client{Timeout: 20 * time.Second, Jar: jar},
 		baseURL: defaultBaseURL,
 		pollEvery: 3 * time.Second,
 		maxWait: 30 * time.Minute,
@@ -264,7 +267,7 @@ func (e *Executor) requestJSON(ctx context.Context, method, path string, body in
 }
 
 func deviceID(orderID uint) string {
-	return "aishopone-" + strings.TrimSpace(strings.ToLower(strings.ReplaceAll(time.Unix(int64(orderID), 0).UTC().Format("20060102T150405"), ":", "")))
+	return fmt.Sprintf("aishopone-order-%d", orderID)
 }
 
 func nestedString(value map[string]interface{}, key string) string {

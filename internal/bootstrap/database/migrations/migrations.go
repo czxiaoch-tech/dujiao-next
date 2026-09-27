@@ -235,14 +235,6 @@ func ensureChatGPTPro20xSessionFormMigration() error {
 		return nil
 	}
 
-	var product productdomain.Product
-	if err := gormdb.DB.Where("slug = ? AND deleted_at IS NULL", "chatgpt-pro-20x").First(&product).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
-		return err
-	}
-
 	schema := jsonmap.JSON{
 		"fields": []interface{}{
 			map[string]interface{}{
@@ -265,17 +257,22 @@ func ensureChatGPTPro20xSessionFormMigration() error {
 	}
 
 	return gormdb.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&productdomain.Product{}).
-			Where("id = ?", product.ID).
-			Update("manual_form_schema_json", schema).Error; err != nil {
-			return err
+		result := tx.Model(&productdomain.Product{}).
+			Where("slug = ? AND deleted_at IS NULL", "chatgpt-pro-20x").
+			Update("manual_form_schema_json", schema)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			// 商品尚未建立时不写 done marker；以后重启仍会再次尝试。
+			return nil
 		}
 		marker := settingsstore.SettingRecord{
 			Key: chatGPTPro20xSessionFormMigrationKey,
 			ValueJSON: jsonmap.JSON{
-				"done":        true,
-				"product_id":  product.ID,
-				"migrated_at": time.Now().UTC().Format(time.RFC3339),
+				"done":           true,
+				"migrated_count": result.RowsAffected,
+				"migrated_at":    time.Now().UTC().Format(time.RFC3339),
 			},
 		}
 		return tx.Save(&marker).Error

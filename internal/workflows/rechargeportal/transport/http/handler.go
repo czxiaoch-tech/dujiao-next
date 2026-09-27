@@ -2,6 +2,7 @@ package rechargeportalhttp
 
 import (
 	"errors"
+	"os"
 	"strings"
 
 	rechargeportal "github.com/dujiao-next/internal/workflows/rechargeportal/application"
@@ -103,4 +104,15 @@ func respondError(c *gin.Context, err error) {
 	default:
 		ginutil.RespondError(c, response.CodeInternal, "error.gift_card_redeem_failed", nil)
 	}
+}
+
+
+func (h *Handler) Simulation(c *gin.Context) {
+	enabled := strings.TrimSpace(os.Getenv("MIRROR_RECHARGE_SIMULATION")) == "1"
+	result, err := h.service.SimulationFixture(c.Request.Context(), enabled)
+	if err != nil {
+		respondError(c, err)
+		return
+	}
+	response.Success(c, result)
 }

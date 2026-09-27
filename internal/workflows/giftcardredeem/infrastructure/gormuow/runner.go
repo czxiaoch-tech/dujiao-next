@@ -143,6 +143,11 @@ func (tx *transaction) CreateProductOrder(input giftcardcontract.ProductOrderInp
 		return nil, giftcardcontract.ErrInvalid
 	}
 
+	rawSession := ""
+	if strings.EqualFold(strings.TrimSpace(product.Slug), "chatgpt-pro-20x") {
+		rawSession, _ = input.ManualFormData["session_json"].(string)
+	}
+
 	normalizedSchema, normalizedSubmission, err := manualform.ValidateAndNormalize(
 		product.ManualFormSchemaJSON,
 		input.ManualFormData,
@@ -152,8 +157,8 @@ func (tx *transaction) CreateProductOrder(input giftcardcontract.ProductOrderInp
 	}
 
 	if strings.EqualFold(strings.TrimSpace(product.Slug), "chatgpt-pro-20x") {
-		rawSession, _ := normalizedSubmission["session_json"].(string)
-		if strings.TrimSpace(rawSession) == "" || tx.sensitiveCodec == nil {
+		rawSession = strings.TrimSpace(rawSession)
+		if rawSession == "" || tx.sensitiveCodec == nil {
 			return nil, giftcardcontract.ErrInvalid
 		}
 		encryptedSession, sealErr := tx.sensitiveCodec.Seal(rawSession)

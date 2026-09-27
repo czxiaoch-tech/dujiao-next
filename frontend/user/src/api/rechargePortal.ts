@@ -1,6 +1,7 @@
 import { api } from './client'
 
 export const rechargePortalAPI = {
+    simulation: () => api.get('/public/recharge/simulation', { silentBusinessError: true }),
     preview: (code: string) => api.post('/public/recharge/preview', { code }),
     preflight: (redemptionToken: string, sessionJSON: string) =>
         api.post('/public/recharge/preflight', {

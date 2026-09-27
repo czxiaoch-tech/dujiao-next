@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { rechargePortalAPI } from '../api/rechargePortal'
 
 type Step = 1 | 2 | 3 | 4
-type ResultStatus = 'pending' | 'processing' | 'completed' | 'failed'
+type ResultStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'timeout' | 'manual'
 
 const RESULT_TOKEN_KEY = 'aishopone_recharge_result_token_v1'
 
@@ -21,6 +21,10 @@ const accountEmail = ref('')
 const accountID = ref('')
 const resultStatus = ref<ResultStatus>('pending')
 const resultMessage = ref('')
+const simulationEnabled = ref(false)
+const simulationCode = ref('')
+const simulationSession = ref('')
+const simulationScenario = ref('success')
 
 let pollTimer: number | undefined
 let pollStartedAt = 0
@@ -36,6 +40,8 @@ const statusTitle = computed(() => {
   switch (resultStatus.value) {
     case 'completed': return '充值已完成'
     case 'failed': return '充值未完成'
+    case 'timeout': return '模拟处理超时'
+    case 'manual': return '已转人工处理'
     case 'processing': return '正在充值'
     default: return '等待处理'
   }
@@ -44,7 +50,9 @@ const statusTitle = computed(() => {
 const statusHint = computed(() => {
   switch (resultStatus.value) {
     case 'completed': return resultMessage.value || '订单已经完成。'
-    case 'failed': return resultMessage.value || '本次充值未完成，请联系本站客服处理。'
+    case 'failed': return resultMessage.value || '模拟充值失败'
+    case 'timeout': return '模拟处理超时'
+    case 'manual': return '已转人工处理'
     case 'processing': return '系统正在处理，请保持本页打开。'
     default: return '订单已提交，正在等待处理。'
   }
@@ -56,6 +64,27 @@ function apiPayload(response: any) {
 
 function resetError() {
   error.value = ''
+}
+
+async function loadSimulation() {
+  try {
+    const response = await rechargePortalAPI.simulation()
+    const data = apiPayload(response)
+    simulationEnabled.value = Boolean(data.enabled)
+    simulationCode.value = String(data.test_code || '')
+    simulationSession.value = String(data.test_session_json || '')
+  } catch {
+    simulationEnabled.value = false
+  }
+}
+
+function fillSimulationCode() {
+  code.value = simulationCode.value
+}
+
+function fillSimulationSession() {
+  try { const data = JSON.parse(simulationSession.value); data.simulation_scenario = simulationScenario.value; sessionJSON.value = JSON.stringify(data) }
+  catch { sessionJSON.value = simulationSession.value }
 }
 
 async function previewCode() {
@@ -132,7 +161,7 @@ async function loadResult() {
     orderNo.value = String(data.order_no || orderNo.value)
     resultStatus.value = (String(data.status || 'pending') as ResultStatus)
     resultMessage.value = String(data.message || '')
-    if (resultStatus.value === 'completed' || resultStatus.value === 'failed') {
+    if (['completed', 'failed', 'timeout', 'manual'].includes(resultStatus.value)) {
       stopPolling()
     }
   } catch {
@@ -178,6 +207,7 @@ function startOver() {
 }
 
 onMounted(() => {
+  void loadSimulation()
   const saved = sessionStorage.getItem(RESULT_TOKEN_KEY)
   if (saved) {
     resultToken.value = saved
@@ -201,6 +231,14 @@ onUnmounted(stopPolling)
         </div>
       </header>
 
+      <div v-if="simulationEnabled" class="simulation-banner">
+        <div>
+          <strong>Simulation Lab</strong>
+          <span>当前为镜像实验模式，不会请求真实上游，也不会使用真实 ChatGPT 账号。</span>
+        </div>
+        <span class="simulation-badge">实验环境</span>
+      </div>
+
       <div class="steps" aria-label="充值步骤">
         <div v-for="item in progress" :key="item.n" class="step-item" :class="{ active: step === item.n, done: step > item.n }">
           <span class="step-dot">{{ item.n }}</span>
@@ -221,6 +259,17 @@ onUnmounted(stopPolling)
             <span>卡密</span>
             <input v-model="code" class="input" autocomplete="off" placeholder="请输入 AI Shop One 卡密" @keyup.enter="previewCode" />
           </label>
+          <div v-if="simulationEnabled" class="simulation-card">
+            <strong>本次模拟结果</strong>
+            <label><input v-model="simulationScenario" type="radio" value="success" /> 成功</label>
+            <label><input v-model="simulationScenario" type="radio" value="failed" /> 失败</label>
+            <label><input v-model="simulationScenario" type="radio" value="pending" /> 持续处理中</label>
+            <label><input v-model="simulationScenario" type="radio" value="timeout" /> 超时</label>
+            <label><input v-model="simulationScenario" type="radio" value="manual" /> 人工接管</label>
+          </div>
+          <button v-if="simulationEnabled" class="simulation-fill-btn" type="button" @click="fillSimulationCode">
+            填入模拟卡密：{{ simulationCode }}
+          </button>
           <button class="primary-btn" :disabled="loading" @click="previewCode">
             {{ loading ? '验证中…' : '验证卡密' }}
           </button>
@@ -235,7 +284,14 @@ onUnmounted(stopPolling)
             </div>
           </div>
 
-          <div class="notice">
+          <div v-if="simulationEnabled" class="simulation-card">
+            <div>
+              <strong>实验资料已准备好</strong>
+              <p>使用完全假的 Session JSON 验证整条镜像链，不会接触真实 ChatGPT Session。</p>
+            </div>
+            <button class="simulation-fill-btn compact" type="button" @click="fillSimulationSession">一键填入模拟 Session</button>
+          </div>
+          <div v-else class="notice">
             打开
             <a href="https://chatgpt.com/api/auth/session" target="_blank" rel="noopener">ChatGPT Session 页面</a>
             ，复制页面显示的完整 JSON 后粘贴到下方。不要只粘贴 Access Token。
@@ -337,6 +393,18 @@ onUnmounted(stopPolling)
 .eyebrow { margin: 0 0 3px; color: var(--primary, #2563eb); font-weight: 700; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
 h1 { margin: 0; font-size: clamp(28px, 5vw, 40px); color: var(--ink, #111827); line-height: 1.1; }
 .subtitle { margin: 7px 0 0; color: var(--ink-3, #6b7280); }
+.simulation-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  margin: 0 0 18px; padding: 14px 16px; border-radius: 15px;
+  border: 1px solid #bfdbfe; background: #eff6ff; color: #1e3a8a;
+}
+.simulation-banner > div { display: grid; gap: 3px; }
+.simulation-banner strong { font-size: 14px; }
+.simulation-banner span { font-size: 12px; line-height: 1.55; }
+.simulation-badge {
+  flex: 0 0 auto; padding: 6px 10px; border-radius: 999px;
+  background: #2563eb; color: #fff !important; font-weight: 700;
+}
 .steps {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
   margin-bottom: 18px;
@@ -381,6 +449,19 @@ h1 { margin: 0; font-size: clamp(28px, 5vw, 40px); color: var(--ink, #111827); l
   min-height: 48px; border-radius: 14px; padding: 0 20px; font-weight: 700; cursor: pointer;
   transition: transform .12s ease, opacity .12s ease; border: 0;
 }
+.simulation-fill-btn {
+  width: 100%; min-height: 42px; padding: 9px 14px; border-radius: 12px;
+  border: 1px dashed #60a5fa; background: #eff6ff; color: #1d4ed8;
+  font-weight: 700; cursor: pointer; text-align: center;
+}
+.simulation-fill-btn.compact { width: auto; flex: 0 0 auto; }
+.simulation-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  padding: 14px 16px; border: 1px solid #bfdbfe; border-radius: 14px; background: #eff6ff;
+}
+.simulation-card strong { color: #1e3a8a; }
+.simulation-card p { margin: 4px 0 0; color: #475569; font-size: 13px; line-height: 1.55; }
+
 .primary-btn { background: var(--primary, #2563eb); color: white; }
 .secondary-btn { background: var(--soft, #f3f4f6); color: var(--ink, #111827); border: 1px solid var(--brd, #e5e7eb); }
 .primary-btn:hover:not(:disabled), .secondary-btn:hover:not(:disabled) { transform: translateY(-1px); }
@@ -425,6 +506,8 @@ h1 { margin: 0; font-size: clamp(28px, 5vw, 40px); color: var(--ink, #111827); l
   .steps { grid-template-columns: repeat(2, 1fr); }
   .step-item { justify-content: flex-start; }
   .panel { border-radius: 18px; padding: 22px 18px; }
+  .simulation-banner, .simulation-card { align-items: flex-start; flex-direction: column; }
+  .simulation-fill-btn.compact { width: 100%; }
   .actions { grid-template-columns: 1fr; }
   .summary-card > div { grid-template-columns: 1fr; gap: 4px; }
 }

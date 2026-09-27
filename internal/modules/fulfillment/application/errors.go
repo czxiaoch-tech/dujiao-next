@@ -17,4 +17,7 @@ var (
 	ErrOrderStatusInvalid      = orderapp.ErrOrderStatusInvalid
 	ErrOrderUpdateFailed       = orderapp.ErrOrderUpdateFailed
 	ErrCardSecretInsufficient  = orderapp.ErrCardSecretInsufficient
+	ErrPlusExecutorUnavailable = errors.New("plus fulfillment executor unavailable")
+	ErrPlusExecutionFailed     = errors.New("plus fulfillment execution failed")
+	ErrFulfillmentNotPlus      = errors.New("fulfillment not plus")
 )

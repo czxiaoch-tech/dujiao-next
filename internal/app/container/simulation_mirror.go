@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/dujiao-next/internal/constants"
 	categoryapp "github.com/dujiao-next/internal/modules/catalog/category/application"
@@ -12,11 +11,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const (
-	mirrorSimulationEnv      = "MIRROR_RECHARGE_SIMULATION"
-	mirrorSimulationCode     = "ASO-SIM-PRO20X-001"
-	mirrorSimulationBatchNo  = "SIMULATION-MIRROR-PRO20X"
-)
+const mirrorSimulationEnv = "MIRROR_RECHARGE_SIMULATION"
 
 func (c *Container) initMirrorSimulationIfEnabled() error {
 	if strings.TrimSpace(os.Getenv(mirrorSimulationEnv)) != "1" {
@@ -102,14 +97,5 @@ func (c *Container) initMirrorSimulationIfEnabled() error {
 	if sku == nil {
 		return errors.New("mirror simulation PRO20X sku missing")
 	}
-
-	_, err = c.GiftCardRepo.ImportProductCodesToBatch(
-		mirrorSimulationBatchNo,
-		"Mirror Simulation Pro20X",
-		product.ID,
-		sku.ID,
-		[]string{mirrorSimulationCode},
-		time.Now(),
-	)
-	return err
+	return nil
 }

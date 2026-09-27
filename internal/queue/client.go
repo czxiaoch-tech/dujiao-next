@@ -84,6 +84,20 @@ func (c *Client) EnqueueOrderAutoFulfill(payload OrderAutoFulfillPayload, opts .
 	return err
 }
 
+// EnqueuePlusAutoFulfill 推送 Plus 自动交付桥任务。
+func (c *Client) EnqueuePlusAutoFulfill(payload PlusAutoFulfillPayload, opts ...asynq.Option) error {
+	if !c.Enabled() {
+		return nil
+	}
+	task, err := NewPlusAutoFulfillTask(payload)
+	if err != nil {
+		return err
+	}
+	options := append([]asynq.Option{asynq.Queue(c.defaultQueue)}, opts...)
+	_, err = c.client.Enqueue(task, options...)
+	return err
+}
+
 // EnqueueOrderTimeoutCancel 推送订单超时取消任务
 func (c *Client) EnqueueOrderTimeoutCancel(payload OrderTimeoutCancelPayload, delay time.Duration) error {
 	if !c.Enabled() {

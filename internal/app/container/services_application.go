@@ -16,8 +16,8 @@ import (
 	"github.com/dujiao-next/internal/modules/content/infrastructure/gormstore"
 	couponapp "github.com/dujiao-next/internal/modules/coupon/application"
 	fulfillmentapp "github.com/dujiao-next/internal/modules/fulfillment/application"
-	fulfillmentqueue "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/queueadapter"
 	fulfillmentkeleai "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/keleai"
+	fulfillmentqueue "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/queueadapter"
 	fulfillmentsimulation "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/simulation"
 	fulfillmentwanghaha "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/wanghaha"
 	giftcardapp "github.com/dujiao-next/internal/modules/giftcard/application"
@@ -128,7 +128,7 @@ func (c *Container) initApplicationServices() {
 	})
 	c.FulfillmentService.SetPlusExecutor(fulfillmentwanghaha.New(c.GiftCardRepo))
 	if strings.TrimSpace(os.Getenv("MIRROR_RECHARGE_SIMULATION")) == "1" {
-		c.FulfillmentService.SetKeleaiPro20xExecutor(fulfillmentsimulation.NewPro20xExecutor())
+		c.FulfillmentService.SetKeleaiPro20xExecutor(fulfillmentsimulation.NewPro20xExecutor(c.Config.App.SecretKey))
 	} else {
 		c.FulfillmentService.SetKeleaiPro20xExecutor(fulfillmentkeleai.New(c.GiftCardRepo, c.Config.App.SecretKey))
 	}
@@ -140,13 +140,13 @@ func (c *Container) initApplicationServices() {
 		ProductSKUs:  c.ProductSKURepo,
 	})
 	c.GiftCardService = giftcardapp.NewService(giftcardapp.Options{
-		Repo:     c.GiftCardRepo,
-		Users:    c.UserStore,
-		Currency: giftcardsettingscurrency.New(c.SettingService),
-		Redeemer: giftcardredeemgormuow.NewWithProductsSecure(c.GiftCardRepo, c.WalletService, c.ProductRepo, c.ProductSKURepo, c.Config.App.SecretKey),
-		Products:         c.ProductRepo,
-		SKUs:             c.ProductSKURepo,
-		PlusAutoFulfillQ:      giftcardqueue.New(c.QueueClient),
+		Repo:                 c.GiftCardRepo,
+		Users:                c.UserStore,
+		Currency:             giftcardsettingscurrency.New(c.SettingService),
+		Redeemer:             giftcardredeemgormuow.NewWithProductsSecure(c.GiftCardRepo, c.WalletService, c.ProductRepo, c.ProductSKURepo, c.Config.App.SecretKey),
+		Products:             c.ProductRepo,
+		SKUs:                 c.ProductSKURepo,
+		PlusAutoFulfillQ:     giftcardqueue.New(c.QueueClient),
 		KeleaiPro20xFulfillQ: giftcardqueue.New(c.QueueClient),
 	})
 	c.CouponAdminService = couponapp.NewAdminService(c.CouponRepo)

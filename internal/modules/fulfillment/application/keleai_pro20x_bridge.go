@@ -77,7 +77,7 @@ func (s *Service) ExecuteKeleaiPro20xFulfillment(ctx context.Context, orderID ui
 	}
 
 	if scenario := strings.ToLower(strings.TrimSpace(result.Scenario)); scenario != "" && scenario != "success" {
-		status := map[string]string{"failure": "failed", "timeout": "timeout", "manual": "manual"}[scenario]
+		status := map[string]string{"failure": "failed", "failed": "failed", "timeout": "timeout", "manual": "manual"}[scenario]
 		if scenario == "pending" {
 			return nil, nil
 		}

@@ -100,7 +100,7 @@ func readAccountID(submission map[string]interface{}) string {
 	if submission == nil {
 		return ""
 	}
-	for _, key := range []string{"account_id", "accountId"} {
+	for _, key := range []string{"account_id", "accountId", "recharge_account"} {
 		if value, ok := submission[key].(string); ok {
 			if trimmed := strings.TrimSpace(value); trimmed != "" {
 				return trimmed

@@ -98,6 +98,20 @@ func (c *Client) EnqueuePlusAutoFulfill(payload PlusAutoFulfillPayload, opts ...
 	return err
 }
 
+// EnqueueKeleaiPro20xFulfill 推送 Keleai Pro20X 自动交付任务。
+func (c *Client) EnqueueKeleaiPro20xFulfill(payload KeleaiPro20xFulfillPayload, opts ...asynq.Option) error {
+	if !c.Enabled() {
+		return nil
+	}
+	task, err := NewKeleaiPro20xFulfillTask(payload)
+	if err != nil {
+		return err
+	}
+	options := append([]asynq.Option{asynq.Queue(c.defaultQueue)}, opts...)
+	_, err = c.client.Enqueue(task, options...)
+	return err
+}
+
 // EnqueueOrderTimeoutCancel 推送订单超时取消任务
 func (c *Client) EnqueueOrderTimeoutCancel(payload OrderTimeoutCancelPayload, delay time.Duration) error {
 	if !c.Enabled() {

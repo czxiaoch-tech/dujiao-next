@@ -220,21 +220,28 @@ func (s *Service) redeemProductGiftCard(input RedeemInput) (*giftcarddomain.Gift
 		return nil, nil, err
 	}
 
-	// V0.1 仅 ChatGPT Plus 在产品码事务提交成功后进入自动履约桥。
-	// 入队失败不能回滚已消费的产品码；订单保持 fulfilling，继续允许人工接管。
-	if resultCard != nil && resultOrder != nil && resultCard.ProductID != nil &&
-		s.products != nil && s.plusAutoFulfillQ != nil {
+	// 产品码事务提交后再入队；队列失败不能回滚已消费产品码，订单继续保持 fulfilling。
+	if resultCard != nil && resultOrder != nil && resultCard.ProductID != nil && s.products != nil {
 		product, productErr := s.products.GetByID(fmt.Sprintf("%d", *resultCard.ProductID))
 		if productErr != nil {
-			logger.Warnw("giftcard_plus_auto_fulfill_product_lookup_failed",
+			logger.Warnw("giftcard_auto_fulfill_product_lookup_failed",
 				"order_id", resultOrder.ID,
 				"product_id", *resultCard.ProductID,
 			)
-		} else if product != nil && strings.EqualFold(strings.TrimSpace(product.Slug), "chatgpt-plus") {
-			if queueErr := s.plusAutoFulfillQ.EnqueuePlusAutoFulfill(resultOrder.ID); queueErr != nil {
-				logger.Warnw("giftcard_plus_auto_fulfill_enqueue_failed",
-					"order_id", resultOrder.ID,
-				)
+		} else if product != nil {
+			switch strings.ToLower(strings.TrimSpace(product.Slug)) {
+			case "chatgpt-plus":
+				if s.plusAutoFulfillQ != nil {
+					if queueErr := s.plusAutoFulfillQ.EnqueuePlusAutoFulfill(resultOrder.ID); queueErr != nil {
+						logger.Warnw("giftcard_plus_auto_fulfill_enqueue_failed", "order_id", resultOrder.ID)
+					}
+				}
+			case "chatgpt-pro-20x":
+				if s.keleaiPro20xFulfillQ != nil {
+					if queueErr := s.keleaiPro20xFulfillQ.EnqueueKeleaiPro20xFulfill(resultOrder.ID); queueErr != nil {
+						logger.Warnw("giftcard_keleai_pro20x_enqueue_failed", "order_id", resultOrder.ID)
+					}
+				}
 			}
 		}
 	}

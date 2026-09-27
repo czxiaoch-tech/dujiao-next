@@ -113,6 +113,7 @@ func (c *Container) initApplicationServices() {
 	})
 	c.FulfillmentService = fulfillmentapp.New(fulfillmentapp.Options{
 		OrderStore:            c.OrderStore,
+		ProductStore:          c.ProductRepo,
 		FulfillmentStore:      c.FulfillmentStore,
 		OrderQueue:            orderQueue,
 		BotNotifier:           fulfillmentqueue.NewBotNotifier(c.QueueClient),

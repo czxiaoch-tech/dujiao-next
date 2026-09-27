@@ -33,6 +33,7 @@ const (
 	paymentFeePolicyMigrationSettingKey             = "migration/payment_fee_policy_v1"
 	orderRefundPaymentFeeMigrationSettingKey        = "migration/order_refund_payment_fee_v1"
 	orderItemOriginalPriceMigrationKey              = "migration/order_item_original_price_v1"
+	chatGPTPro20xSessionFormMigrationKey            = "migration/chatgpt_pro20x_session_form_v1"
 	manualStockUnlimitedValue                       = -1
 	cartProductForeignKeyConstraint                 = "fk_cart_items_product"
 	cartSKUForeignKeyConstraint                     = "fk_cart_items_sku"
@@ -216,6 +217,69 @@ func migrationDone(value jsonmap.JSON) bool {
 	}
 	flag, ok := done.(bool)
 	return ok && flag
+}
+
+// ensureChatGPTPro20xSessionFormMigration 把正式 Pro20X 商品表单切到 Session JSON。
+// 只更新指定 slug 的 manual_form_schema_json，其余商品/价格/SKU/库存均不触碰。
+func ensureChatGPTPro20xSessionFormMigration() error {
+	if gormdb.DB == nil {
+		return errors.New("database is not initialized")
+	}
+
+	var migration settingsstore.SettingRecord
+	if err := gormdb.DB.First(&migration, "key = ?", chatGPTPro20xSessionFormMigrationKey).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+	} else if migrationDone(migration.ValueJSON) {
+		return nil
+	}
+
+	var product productdomain.Product
+	if err := gormdb.DB.Where("slug = ? AND deleted_at IS NULL", "chatgpt-pro-20x").First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	schema := jsonmap.JSON{
+		"fields": []interface{}{
+			map[string]interface{}{
+				"key":      "session_json",
+				"type":     "textarea",
+				"required": true,
+				"max_len":  20000,
+				"label": map[string]interface{}{
+					"zh-CN": "ChatGPT Session JSON",
+					"zh-TW": "ChatGPT Session JSON",
+					"en-US": "ChatGPT Session JSON",
+				},
+				"placeholder": map[string]interface{}{
+					"zh-CN": "粘贴完整 ChatGPT Session JSON（需包含 sessionToken）",
+					"zh-TW": "貼上完整 ChatGPT Session JSON（需包含 sessionToken）",
+					"en-US": "Paste the full ChatGPT Session JSON containing sessionToken",
+				},
+			},
+		},
+	}
+
+	return gormdb.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&productdomain.Product{}).
+			Where("id = ?", product.ID).
+			Update("manual_form_schema_json", schema).Error; err != nil {
+			return err
+		}
+		marker := settingsstore.SettingRecord{
+			Key: chatGPTPro20xSessionFormMigrationKey,
+			ValueJSON: jsonmap.JSON{
+				"done":        true,
+				"product_id":  product.ID,
+				"migrated_at": time.Now().UTC().Format(time.RFC3339),
+			},
+		}
+		return tx.Save(&marker).Error
+	})
 }
 
 // ensurePaymentFeePolicyMigration 为升级前的支付记录补充不可变手续费策略快照。

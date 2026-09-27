@@ -15,6 +15,7 @@ import (
 	couponapp "github.com/dujiao-next/internal/modules/coupon/application"
 	fulfillmentapp "github.com/dujiao-next/internal/modules/fulfillment/application"
 	fulfillmentqueue "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/queueadapter"
+	fulfillmentwanghaha "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/wanghaha"
 	giftcardapp "github.com/dujiao-next/internal/modules/giftcard/application"
 	giftcardqueue "github.com/dujiao-next/internal/modules/giftcard/infrastructure/queueadapter"
 	giftcardsettingscurrency "github.com/dujiao-next/internal/modules/giftcard/infrastructure/settingscurrency"
@@ -121,6 +122,7 @@ func (c *Container) initApplicationServices() {
 		DefaultEmailConfig:    c.Config.Email,
 		ExternalIdentityStore: c.ExternalIdentityStore,
 	})
+	c.FulfillmentService.SetPlusExecutor(fulfillmentwanghaha.New(c.GiftCardRepo))
 	c.CardSecretService = cardsecretapp.NewService(cardsecretapp.ServiceOptions{
 		Secrets:      c.CardSecretRepo,
 		Batches:      c.CardSecretBatchRepo,

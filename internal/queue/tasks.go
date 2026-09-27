@@ -13,6 +13,8 @@ const (
 	TaskOrderStatusEmail = constants.TaskOrderStatusEmail
 	// TaskOrderAutoFulfill 自动交付任务
 	TaskOrderAutoFulfill = constants.TaskOrderAutoFulfill
+	// TaskPlusAutoFulfill Plus 自动交付桥任务
+	TaskPlusAutoFulfill = constants.TaskPlusAutoFulfill
 	// TaskOrderTimeoutCancel 超时取消任务
 	TaskOrderTimeoutCancel = constants.TaskOrderTimeoutCancel
 	// TaskWalletRechargeExpire 钱包充值超时过期任务
@@ -50,6 +52,11 @@ type OrderStatusEmailPayload struct {
 
 // OrderAutoFulfillPayload 自动交付任务载荷
 type OrderAutoFulfillPayload struct {
+	OrderID uint `json:"order_id"`
+}
+
+// PlusAutoFulfillPayload Plus 自动交付桥任务载荷。
+type PlusAutoFulfillPayload struct {
 	OrderID uint `json:"order_id"`
 }
 

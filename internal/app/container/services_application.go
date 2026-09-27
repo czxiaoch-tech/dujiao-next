@@ -15,7 +15,9 @@ import (
 	couponapp "github.com/dujiao-next/internal/modules/coupon/application"
 	fulfillmentapp "github.com/dujiao-next/internal/modules/fulfillment/application"
 	fulfillmentqueue "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/queueadapter"
+	fulfillmentwanghaha "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/wanghaha"
 	giftcardapp "github.com/dujiao-next/internal/modules/giftcard/application"
+	giftcardqueue "github.com/dujiao-next/internal/modules/giftcard/infrastructure/queueadapter"
 	giftcardsettingscurrency "github.com/dujiao-next/internal/modules/giftcard/infrastructure/settingscurrency"
 	memberlevelapp "github.com/dujiao-next/internal/modules/memberlevel/application"
 	orderapp "github.com/dujiao-next/internal/modules/order/application"
@@ -112,6 +114,7 @@ func (c *Container) initApplicationServices() {
 	})
 	c.FulfillmentService = fulfillmentapp.New(fulfillmentapp.Options{
 		OrderStore:            c.OrderStore,
+		ProductStore:          c.ProductRepo,
 		FulfillmentStore:      c.FulfillmentStore,
 		OrderQueue:            orderQueue,
 		BotNotifier:           fulfillmentqueue.NewBotNotifier(c.QueueClient),
@@ -119,6 +122,7 @@ func (c *Container) initApplicationServices() {
 		DefaultEmailConfig:    c.Config.Email,
 		ExternalIdentityStore: c.ExternalIdentityStore,
 	})
+	c.FulfillmentService.SetPlusExecutor(fulfillmentwanghaha.New(c.GiftCardRepo))
 	c.CardSecretService = cardsecretapp.NewService(cardsecretapp.ServiceOptions{
 		Secrets:      c.CardSecretRepo,
 		Batches:      c.CardSecretBatchRepo,
@@ -131,8 +135,9 @@ func (c *Container) initApplicationServices() {
 		Users:    c.UserStore,
 		Currency: giftcardsettingscurrency.New(c.SettingService),
 		Redeemer: giftcardredeemgormuow.NewWithProducts(c.GiftCardRepo, c.WalletService, c.ProductRepo, c.ProductSKURepo),
-		Products: c.ProductRepo,
-		SKUs:     c.ProductSKURepo,
+		Products:         c.ProductRepo,
+		SKUs:             c.ProductSKURepo,
+		PlusAutoFulfillQ: giftcardqueue.New(c.QueueClient),
 	})
 	c.CouponAdminService = couponapp.NewAdminService(c.CouponRepo)
 	c.PromotionAdminService = promotionapp.NewAdminService(c.PromotionRepo)

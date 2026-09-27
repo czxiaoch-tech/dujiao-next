@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dujiao-next/internal/constants"
+	"github.com/dujiao-next/internal/logger"
 	"github.com/dujiao-next/internal/modules/catalog/product/manualform"
 	giftcardcontract "github.com/dujiao-next/internal/modules/giftcard/contract"
 	giftcarddomain "github.com/dujiao-next/internal/modules/giftcard/domain"
@@ -28,6 +29,9 @@ func (s *Service) ResolveGiftCard(code string) (*ResolveResult, error) {
 	card, err := s.repo.GetByCode(normalizedCode)
 	if err != nil {
 		return nil, giftcardcontract.ErrFetchFailed
+	}
+	if isUpstreamOnlyCard(card) {
+		return nil, giftcardcontract.ErrInvalid
 	}
 	if err := validateCardUsable(card, time.Now()); err != nil {
 		return nil, err
@@ -215,6 +219,25 @@ func (s *Service) redeemProductGiftCard(input RedeemInput) (*giftcarddomain.Gift
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// V0.1 仅 ChatGPT Plus 在产品码事务提交成功后进入自动履约桥。
+	// 入队失败不能回滚已消费的产品码；订单保持 fulfilling，继续允许人工接管。
+	if resultCard != nil && resultOrder != nil && resultCard.ProductID != nil &&
+		s.products != nil && s.plusAutoFulfillQ != nil {
+		product, productErr := s.products.GetByID(fmt.Sprintf("%d", *resultCard.ProductID))
+		if productErr != nil {
+			logger.Warnw("giftcard_plus_auto_fulfill_product_lookup_failed",
+				"order_id", resultOrder.ID,
+				"product_id", *resultCard.ProductID,
+			)
+		} else if product != nil && strings.EqualFold(strings.TrimSpace(product.Slug), "chatgpt-plus") {
+			if queueErr := s.plusAutoFulfillQ.EnqueuePlusAutoFulfill(resultOrder.ID); queueErr != nil {
+				logger.Warnw("giftcard_plus_auto_fulfill_enqueue_failed",
+					"order_id", resultOrder.ID,
+				)
+			}
+		}
+	}
 	return resultCard, resultOrder, nil
 }
 
@@ -223,4 +246,11 @@ func isGiftCardExpired(expiresAt *time.Time, now time.Time) bool {
 		return false
 	}
 	return expiresAt.Before(now)
+}
+
+func isUpstreamOnlyCard(card *giftcarddomain.GiftCard) bool {
+	if card == nil || card.Batch == nil {
+		return false
+	}
+	return strings.HasPrefix(strings.ToUpper(strings.TrimSpace(card.Batch.BatchNo)), "UPSTREAM-")
 }

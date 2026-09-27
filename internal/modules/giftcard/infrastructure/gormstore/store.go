@@ -97,7 +97,9 @@ func (r *Store) GetByCode(code string) (*giftcarddomain.GiftCard, error) {
 	var card giftcarddomain.GiftCard
 	if r.codec != nil {
 		hash := r.codec.lookupHash(code)
-		err := r.db.Where("deleted_at IS NULL AND code_hash = ?", hash).First(&card).Error
+		err := r.db.Where("gift_cards.deleted_at IS NULL AND code_hash = ?", hash).
+			Preload("Batch", "deleted_at IS NULL").
+			First(&card).Error
 		if err == nil {
 			r.hydrateCardMask(&card)
 			return &card, nil
@@ -107,9 +109,9 @@ func (r *Store) GetByCode(code string) (*giftcarddomain.GiftCard, error) {
 		}
 	}
 	if err := r.db.Where(
-		"deleted_at IS NULL AND (code_hash IS NULL OR code_hash = '') AND code = ?",
+		"gift_cards.deleted_at IS NULL AND (code_hash IS NULL OR code_hash = '') AND code = ?",
 		code,
-	).First(&card).Error; err != nil {
+	).Preload("Batch", "deleted_at IS NULL").First(&card).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -129,7 +131,8 @@ func (r *Store) GetByCodeForUpdate(code string) (*giftcarddomain.GiftCard, error
 	if r.codec != nil {
 		hash := r.codec.lookupHash(code)
 		err := r.db.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("deleted_at IS NULL AND code_hash = ?", hash).
+			Where("gift_cards.deleted_at IS NULL AND code_hash = ?", hash).
+			Preload("Batch", "deleted_at IS NULL").
 			First(&card).Error
 		if err == nil {
 			r.hydrateCardMask(&card)
@@ -140,7 +143,8 @@ func (r *Store) GetByCodeForUpdate(code string) (*giftcarddomain.GiftCard, error
 		}
 	}
 	if err := r.db.Clauses(clause.Locking{Strength: "UPDATE"}).
-		Where("deleted_at IS NULL AND (code_hash IS NULL OR code_hash = '') AND code = ?", code).
+		Where("gift_cards.deleted_at IS NULL AND (code_hash IS NULL OR code_hash = '') AND code = ?", code).
+		Preload("Batch", "deleted_at IS NULL").
 		First(&card).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -212,7 +216,7 @@ func (r *Store) List(filter giftcardcontract.ListFilter) ([]giftcarddomain.GiftC
 	query = gormutil.ApplyPagination(query, filter.Page, filter.PageSize)
 
 	var cards []giftcarddomain.GiftCard
-	if err := query.Order("id desc").Find(&cards).Error; err != nil {
+	if err := query.Order("gift_cards.id desc").Find(&cards).Error; err != nil {
 		return nil, 0, err
 	}
 	for idx := range cards {

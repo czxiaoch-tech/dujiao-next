@@ -8,6 +8,7 @@ import (
 
 const (
 	GiftCardStatusActive   = "active"
+	GiftCardStatusReserved = "reserved"
 	GiftCardStatusRedeemed = "redeemed"
 	GiftCardStatusDisabled = "disabled"
 )

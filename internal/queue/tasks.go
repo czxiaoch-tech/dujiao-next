@@ -98,6 +98,15 @@ func NewOrderAutoFulfillTask(payload OrderAutoFulfillPayload) (*asynq.Task, erro
 	return asynq.NewTask(TaskOrderAutoFulfill, body), nil
 }
 
+// NewPlusAutoFulfillTask 创建 Plus 自动交付桥任务。
+func NewPlusAutoFulfillTask(payload PlusAutoFulfillPayload) (*asynq.Task, error) {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	return asynq.NewTask(TaskPlusAutoFulfill, body), nil
+}
+
 // NewOrderTimeoutCancelTask 创建超时取消任务
 func NewOrderTimeoutCancelTask(payload OrderTimeoutCancelPayload) (*asynq.Task, error) {
 	body, err := json.Marshal(payload)

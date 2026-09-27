@@ -14,6 +14,7 @@ const productDetailViewLoader: RouteComponentLoader = () => import('../views/Pro
 const cartViewLoader: RouteComponentLoader = () => import('../views/Cart.vue')
 const checkoutViewLoader: RouteComponentLoader = () => import('../views/Checkout.vue')
 const paymentViewLoader: RouteComponentLoader = () => import('../views/Payment.vue')
+const rechargePortalViewLoader: RouteComponentLoader = () => import('../views/RechargePortal.vue')
 const blogViewLoader: RouteComponentLoader = () => import('../views/Blog.vue')
 const noticeViewLoader: RouteComponentLoader = () => import('../views/Notice.vue')
 const loginViewLoader: RouteComponentLoader = () => import('../views/auth/Login.vue')
@@ -156,6 +157,11 @@ const router = createRouter({
             path: '/pay',
             name: 'payment',
             component: templateView('Payment', paymentViewLoader),
+        },
+        {
+            path: '/recharge',
+            name: 'recharge-portal',
+            component: rechargePortalViewLoader,
         },
         {
             path: '/me',

@@ -30,6 +30,9 @@ func (s *Service) ResolveGiftCard(code string) (*ResolveResult, error) {
 	if err != nil {
 		return nil, giftcardcontract.ErrFetchFailed
 	}
+	if isUpstreamOnlyCard(card) {
+		return nil, giftcardcontract.ErrInvalid
+	}
 	if err := validateCardUsable(card, time.Now()); err != nil {
 		return nil, err
 	}
@@ -243,4 +246,11 @@ func isGiftCardExpired(expiresAt *time.Time, now time.Time) bool {
 		return false
 	}
 	return expiresAt.Before(now)
+}
+
+func isUpstreamOnlyCard(card *giftcarddomain.GiftCard) bool {
+	if card == nil || card.Batch == nil {
+		return false
+	}
+	return strings.HasPrefix(strings.ToUpper(strings.TrimSpace(card.Batch.BatchNo)), "UPSTREAM-")
 }

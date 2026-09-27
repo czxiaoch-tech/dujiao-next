@@ -216,7 +216,7 @@ func (r *Store) List(filter giftcardcontract.ListFilter) ([]giftcarddomain.GiftC
 	query = gormutil.ApplyPagination(query, filter.Page, filter.PageSize)
 
 	var cards []giftcarddomain.GiftCard
-	if err := query.Order("id desc").Find(&cards).Error; err != nil {
+	if err := query.Order("gift_cards.id desc").Find(&cards).Error; err != nil {
 		return nil, 0, err
 	}
 	for idx := range cards {

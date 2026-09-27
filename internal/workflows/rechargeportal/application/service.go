@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -50,7 +51,7 @@ type Service struct {
 }
 
 type PreviewResult struct {
-	RedemptionToken string      `json:"redemption_token"`
+	RedemptionToken string       `json:"redemption_token"`
 	ProductTitle    jsonmap.JSON `json:"product_title"`
 	SKUSnapshot     jsonmap.JSON `json:"sku_snapshot"`
 }
@@ -92,11 +93,11 @@ type resultState struct {
 
 func New(cards CardService, products productcontract.Repository, skus productcontract.SKURepository, orders ordercontract.Store, appSecret string) *Service {
 	return &Service{
-		cards: cards,
+		cards:    cards,
 		products: products,
-		skus: skus,
-		orders: orders,
-		codec: sensitiveform.New(appSecret),
+		skus:     skus,
+		orders:   orders,
+		codec:    sensitiveform.New(appSecret),
 	}
 }
 
@@ -118,8 +119,8 @@ func (s *Service) SimulationFixture(ctx context.Context, enabled bool) (*Simulat
 		return nil, ErrUnavailable
 	}
 	return &SimulationFixture{
-		Enabled:  true,
-		TestCode: code,
+		Enabled:     true,
+		TestCode:    code,
 		TestSession: `{"user":{"email":"simulation@example.invalid"},"sessionToken":"simulation-session-token","accessToken":"simulation-access-token","account_id":"11111111-1111-1111-1111-111111111111"}`,
 	}, nil
 }
@@ -160,15 +161,15 @@ func (s *Service) Preview(ctx context.Context, code string) (*PreviewResult, err
 	}
 	if err := cache.SetJSONRequired(ctx, previewKey(token), previewState{
 		CodeCipher: codeCipher,
-		ProductID: resolved.ProductID,
-		SKUID: resolved.SKUID,
+		ProductID:  resolved.ProductID,
+		SKUID:      resolved.SKUID,
 	}, previewTTL); err != nil {
 		return nil, ErrUnavailable
 	}
 	return &PreviewResult{
 		RedemptionToken: token,
-		ProductTitle: resolved.ProductTitle,
-		SKUSnapshot: resolved.SKUSnapshot,
+		ProductTitle:    resolved.ProductTitle,
+		SKUSnapshot:     resolved.SKUSnapshot,
 	}, nil
 }
 
@@ -205,17 +206,17 @@ func (s *Service) Preflight(ctx context.Context, redemptionToken, sessionJSON st
 		return nil, ErrUnavailable
 	}
 	if err := cache.SetJSONRequired(ctx, preflightKey(preflightToken), preflightState{
-		CodeCipher: preview.CodeCipher,
+		CodeCipher:    preview.CodeCipher,
 		SessionCipher: sessionCipher,
-		ProductID: preview.ProductID,
-		SKUID: preview.SKUID,
+		ProductID:     preview.ProductID,
+		SKUID:         preview.SKUID,
 	}, preflightTTL); err != nil {
 		return nil, ErrUnavailable
 	}
 	return &PreflightResult{
 		PreflightToken: preflightToken,
-		Email: email,
-		AccountID: accountID,
+		Email:          email,
+		AccountID:      accountID,
 	}, nil
 }
 
@@ -246,7 +247,7 @@ func (s *Service) Redeem(ctx context.Context, preflightToken string) (*RedeemRes
 
 	redeemed, err := s.cards.RedeemPublicProductCode(giftcardapp.RedeemInput{
 		UserID: 0,
-		Code: code,
+		Code:   code,
 		ManualFormData: jsonmap.JSON{
 			"session_json": sessionJSON,
 		},
@@ -266,8 +267,8 @@ func (s *Service) Redeem(ctx context.Context, preflightToken string) (*RedeemRes
 	}
 	return &RedeemResult{
 		ResultToken: resultToken,
-		OrderNo: redeemed.Order.OrderNo,
-		Status: publicStatus(redeemed.Order.Status),
+		OrderNo:     redeemed.Order.OrderNo,
+		Status:      publicStatus(redeemed.Order.Status),
 	}, nil
 }
 
@@ -298,11 +299,17 @@ func (s *Service) Result(ctx context.Context, token string) (*Result, error) {
 	if order.Fulfillment != nil {
 		message = strings.TrimSpace(order.Fulfillment.Payload)
 	}
-	return &Result{
-		OrderNo: order.OrderNo,
-		Status: publicStatus(order.Status),
-		Message: message,
-	}, nil
+	status := publicStatus(order.Status)
+	if strings.EqualFold(order.Status, "timeout") {
+		status, message = "timeout", "模拟处理超时"
+	}
+	if strings.EqualFold(order.Status, "manual") {
+		status, message = "manual", "已转人工处理"
+	}
+	if strings.TrimSpace(os.Getenv("MIRROR_RECHARGE_SIMULATION")) == "1" && strings.EqualFold(order.Status, "failed") {
+		message = "模拟充值失败"
+	}
+	return &Result{OrderNo: order.OrderNo, Status: status, Message: message}, nil
 }
 
 func publicStatus(status string) string {

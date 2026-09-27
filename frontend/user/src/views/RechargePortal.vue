@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { rechargePortalAPI } from '../api/rechargePortal'
 
 type Step = 1 | 2 | 3 | 4
-type ResultStatus = 'pending' | 'processing' | 'completed' | 'failed'
+type ResultStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'timeout' | 'manual'
 
 const RESULT_TOKEN_KEY = 'aishopone_recharge_result_token_v1'
 
@@ -24,6 +24,7 @@ const resultMessage = ref('')
 const simulationEnabled = ref(false)
 const simulationCode = ref('')
 const simulationSession = ref('')
+const simulationScenario = ref('success')
 
 let pollTimer: number | undefined
 let pollStartedAt = 0
@@ -39,6 +40,8 @@ const statusTitle = computed(() => {
   switch (resultStatus.value) {
     case 'completed': return '充值已完成'
     case 'failed': return '充值未完成'
+    case 'timeout': return '模拟处理超时'
+    case 'manual': return '已转人工处理'
     case 'processing': return '正在充值'
     default: return '等待处理'
   }
@@ -47,7 +50,9 @@ const statusTitle = computed(() => {
 const statusHint = computed(() => {
   switch (resultStatus.value) {
     case 'completed': return resultMessage.value || '订单已经完成。'
-    case 'failed': return resultMessage.value || '本次充值未完成，请联系本站客服处理。'
+    case 'failed': return resultMessage.value || '模拟充值失败'
+    case 'timeout': return '模拟处理超时'
+    case 'manual': return '已转人工处理'
     case 'processing': return '系统正在处理，请保持本页打开。'
     default: return '订单已提交，正在等待处理。'
   }
@@ -78,7 +83,8 @@ function fillSimulationCode() {
 }
 
 function fillSimulationSession() {
-  sessionJSON.value = simulationSession.value
+  try { const data = JSON.parse(simulationSession.value); data.simulation_scenario = simulationScenario.value; sessionJSON.value = JSON.stringify(data) }
+  catch { sessionJSON.value = simulationSession.value }
 }
 
 async function previewCode() {
@@ -155,7 +161,7 @@ async function loadResult() {
     orderNo.value = String(data.order_no || orderNo.value)
     resultStatus.value = (String(data.status || 'pending') as ResultStatus)
     resultMessage.value = String(data.message || '')
-    if (resultStatus.value === 'completed' || resultStatus.value === 'failed') {
+    if (['completed', 'failed', 'timeout', 'manual'].includes(resultStatus.value)) {
       stopPolling()
     }
   } catch {
@@ -253,6 +259,14 @@ onUnmounted(stopPolling)
             <span>卡密</span>
             <input v-model="code" class="input" autocomplete="off" placeholder="请输入 AI Shop One 卡密" @keyup.enter="previewCode" />
           </label>
+          <div v-if="simulationEnabled" class="simulation-card">
+            <strong>本次模拟结果</strong>
+            <label><input v-model="simulationScenario" type="radio" value="success" /> 成功</label>
+            <label><input v-model="simulationScenario" type="radio" value="failed" /> 失败</label>
+            <label><input v-model="simulationScenario" type="radio" value="pending" /> 持续处理中</label>
+            <label><input v-model="simulationScenario" type="radio" value="timeout" /> 超时</label>
+            <label><input v-model="simulationScenario" type="radio" value="manual" /> 人工接管</label>
+          </div>
           <button v-if="simulationEnabled" class="simulation-fill-btn" type="button" @click="fillSimulationCode">
             填入模拟卡密：{{ simulationCode }}
           </button>

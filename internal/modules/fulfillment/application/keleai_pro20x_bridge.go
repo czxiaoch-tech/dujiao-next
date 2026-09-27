@@ -17,13 +17,14 @@ type KeleaiPro20xExecutionInput struct {
 	OrderID              uint
 	OrderNo              string
 	ProductID            uint
-	SKUID                 uint
+	SKUID                uint
 	ManualFormSubmission jsonmap.JSON
 }
 
 type KeleaiPro20xExecutionResult struct {
 	PublicMessage     string
 	ProviderReference string
+	Scenario          string
 }
 
 type KeleaiPro20xExecutor interface {
@@ -73,6 +74,22 @@ func (s *Service) ExecuteKeleaiPro20xFulfillment(ctx context.Context, orderID ui
 	})
 	if execErr != nil {
 		return nil, ErrKeleaiPro20xExecutionFailed
+	}
+
+	if scenario := strings.ToLower(strings.TrimSpace(result.Scenario)); scenario != "" && scenario != "success" {
+		status := map[string]string{"failure": "failed", "timeout": "timeout", "manual": "manual"}[scenario]
+		if scenario == "pending" {
+			return nil, nil
+		}
+		if status == "" {
+			return nil, ErrKeleaiPro20xExecutionFailed
+		}
+		if err := s.orderStore.WithinTransaction(func(tx ordercontract.Transaction) error {
+			return tx.Orders().UpdateFields(orderID, map[string]interface{}{"status": status, "updated_at": time.Now()})
+		}); err != nil {
+			return nil, ErrOrderUpdateFailed
+		}
+		return nil, nil
 	}
 
 	publicMessage := strings.TrimSpace(result.PublicMessage)

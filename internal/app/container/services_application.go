@@ -2,6 +2,8 @@ package container
 
 import (
 	"context"
+	"os"
+	"strings"
 
 	adproxyapp "github.com/dujiao-next/internal/modules/adproxy/application"
 	adproxygateway "github.com/dujiao-next/internal/modules/adproxy/infrastructure/adgateway"
@@ -16,6 +18,7 @@ import (
 	fulfillmentapp "github.com/dujiao-next/internal/modules/fulfillment/application"
 	fulfillmentqueue "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/queueadapter"
 	fulfillmentkeleai "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/keleai"
+	fulfillmentsimulation "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/simulation"
 	fulfillmentwanghaha "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/wanghaha"
 	giftcardapp "github.com/dujiao-next/internal/modules/giftcard/application"
 	giftcardqueue "github.com/dujiao-next/internal/modules/giftcard/infrastructure/queueadapter"
@@ -124,7 +127,11 @@ func (c *Container) initApplicationServices() {
 		ExternalIdentityStore: c.ExternalIdentityStore,
 	})
 	c.FulfillmentService.SetPlusExecutor(fulfillmentwanghaha.New(c.GiftCardRepo))
-	c.FulfillmentService.SetKeleaiPro20xExecutor(fulfillmentkeleai.New(c.GiftCardRepo, c.Config.App.SecretKey))
+	if strings.TrimSpace(os.Getenv("MIRROR_RECHARGE_SIMULATION")) == "1" {
+		c.FulfillmentService.SetKeleaiPro20xExecutor(fulfillmentsimulation.NewPro20xExecutor())
+	} else {
+		c.FulfillmentService.SetKeleaiPro20xExecutor(fulfillmentkeleai.New(c.GiftCardRepo, c.Config.App.SecretKey))
+	}
 	c.CardSecretService = cardsecretapp.NewService(cardsecretapp.ServiceOptions{
 		Secrets:      c.CardSecretRepo,
 		Batches:      c.CardSecretBatchRepo,

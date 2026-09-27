@@ -29,6 +29,7 @@ type AdminService interface {
 	Delete(id uint) error
 	BatchUpdateStatus(ids []uint, status string) (int64, error)
 	Export(ids []uint, format string) ([]byte, string, error)
+	ImportWanghahaPlusCodes(codes []string) (int, error)
 }
 
 // AdminHandler 处理后台礼品卡请求。
@@ -67,6 +68,10 @@ type batchUpdateStatusRequest struct {
 type exportRequest struct {
 	IDs    []uint `json:"ids" binding:"required"`
 	Format string `json:"format" binding:"required"`
+}
+
+type importWanghahaPlusRequest struct {
+	Codes []string `json:"codes" binding:"required"`
 }
 
 type adminGiftCardUser struct {
@@ -325,4 +330,29 @@ func (h *AdminHandler) Export(c *gin.Context) {
 	c.Header("Content-Type", contentType)
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
 	c.Data(http.StatusOK, contentType, content)
+}
+
+
+// ImportWanghahaPlus 导入隐藏的王哈哈 Plus 上游 CDK。
+// 响应永远不返回明文码。
+func (h *AdminHandler) ImportWanghahaPlus(c *gin.Context) {
+	var req importWanghahaPlusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginutil.RespondBindError(c, err)
+		return
+	}
+	imported, err := h.cards.ImportWanghahaPlusCodes(req.Codes)
+	if err != nil {
+		switch {
+		case errors.Is(err, giftcardcontract.ErrInvalid):
+			ginutil.RespondError(c, response.CodeBadRequest, "error.gift_card_invalid", nil)
+		default:
+			ginutil.RespondError(c, response.CodeInternal, "error.gift_card_create_failed", nil)
+		}
+		return
+	}
+	response.Success(c, gin.H{
+		"batch_no": "UPSTREAM-WANGHAHA-PLUS",
+		"imported": imported,
+	})
 }

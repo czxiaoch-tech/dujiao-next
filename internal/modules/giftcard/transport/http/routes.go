@@ -14,6 +14,7 @@ func RegisterAdminRoutes(admin gin.IRoutes, handler *AdminHandler) {
 	admin.DELETE("/gift-cards/:id", handler.Delete)
 	admin.PATCH("/gift-cards/batch-status", handler.BatchUpdateStatus)
 	admin.POST("/gift-cards/export", handler.Export)
+	admin.POST("/gift-cards/upstream/wanghaha-plus/import", handler.ImportWanghahaPlus)
 }
 
 func RegisterChannelRoutes(channel gin.IRoutes, handler *ChannelHandler) {

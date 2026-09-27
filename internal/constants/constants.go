@@ -383,6 +383,7 @@ const (
 	TaskOrderStatusEmail            = "order:status_email"
 	TaskOrderAutoFulfill            = "order:auto_fulfill"
 	TaskPlusAutoFulfill             = "order:plus_auto_fulfill"
+	TaskKeleaiPro20xFulfill         = "order:keleai_pro20x_fulfill"
 	TaskOrderTimeoutCancel          = "order:timeout_cancel"
 	TaskWalletRechargeExpire        = "wallet_recharge:timeout_expire"
 	TaskNotificationDispatch        = "notification:dispatch"

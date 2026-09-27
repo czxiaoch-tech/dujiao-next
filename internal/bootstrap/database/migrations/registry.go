@@ -113,6 +113,9 @@ func AutoMigrate() error {
 	if err := ensureProductSKUMigration(); err != nil {
 		return err
 	}
+	if err := ensureChatGPTPro20xSessionFormMigration(); err != nil {
+		return err
+	}
 	if err := ensureManualStockRemainingMigration(); err != nil {
 		return err
 	}

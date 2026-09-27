@@ -165,12 +165,32 @@ func (s *Service) RedeemGiftCard(input RedeemInput) (*giftcarddomain.GiftCard, *
 	return resultCard, resultAcc, resultTxn, nil
 }
 
+// RedeemPublicProductCode 仅供本站公开镜像充值中心使用：只允许产品码，访客 user_id=0。
+func (s *Service) RedeemPublicProductCode(input RedeemInput) (*RedeemResult, error) {
+	resolved, err := s.ResolveGiftCard(input.Code)
+	if err != nil {
+		return nil, err
+	}
+	if resolved.RedeemType != giftcarddomain.GiftCardRedeemTypeProduct {
+		return nil, giftcardcontract.ErrInvalid
+	}
+	card, order, err := s.redeemProductGiftCardInternal(input, true)
+	if err != nil {
+		return nil, err
+	}
+	return &RedeemResult{Card: card, Order: order}, nil
+}
+
 func (s *Service) redeemProductGiftCard(input RedeemInput) (*giftcarddomain.GiftCard, *orderdomain.Order, error) {
+	return s.redeemProductGiftCardInternal(input, false)
+}
+
+func (s *Service) redeemProductGiftCardInternal(input RedeemInput, allowGuest bool) (*giftcarddomain.GiftCard, *orderdomain.Order, error) {
 	if s == nil || s.redeemer == nil {
 		return nil, nil, giftcardcontract.ErrFetchFailed
 	}
 	code := strings.TrimSpace(strings.ToUpper(input.Code))
-	if input.UserID == 0 || code == "" {
+	if code == "" || (!allowGuest && input.UserID == 0) {
 		return nil, nil, giftcardcontract.ErrInvalid
 	}
 
@@ -205,7 +225,9 @@ func (s *Service) redeemProductGiftCard(input RedeemInput) (*giftcarddomain.Gift
 
 		now := time.Now()
 		card.Status = giftcarddomain.GiftCardStatusRedeemed
-		card.RedeemedUserID = &input.UserID
+		if input.UserID > 0 {
+			card.RedeemedUserID = &input.UserID
+		}
 		card.RedeemedOrderID = &order.ID
 		card.RedeemedAt = &now
 		card.UpdatedAt = now

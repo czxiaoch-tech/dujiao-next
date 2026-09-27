@@ -30,6 +30,7 @@ type AdminService interface {
 	BatchUpdateStatus(ids []uint, status string) (int64, error)
 	Export(ids []uint, format string) ([]byte, string, error)
 	ImportWanghahaPlusCodes(codes []string) (int, error)
+	ImportKeleaiPro20xCodes(codes []string) (int, error)
 }
 
 // AdminHandler 处理后台礼品卡请求。
@@ -71,6 +72,10 @@ type exportRequest struct {
 }
 
 type importWanghahaPlusRequest struct {
+	Codes []string `json:"codes" binding:"required"`
+}
+
+type importKeleaiPro20xRequest struct {
 	Codes []string `json:"codes" binding:"required"`
 }
 
@@ -353,6 +358,30 @@ func (h *AdminHandler) ImportWanghahaPlus(c *gin.Context) {
 	}
 	response.Success(c, gin.H{
 		"batch_no": "UPSTREAM-WANGHAHA-PLUS",
+		"imported": imported,
+	})
+}
+
+
+// ImportKeleaiPro20x 导入隐藏的 Keleai Pro20X 上游 CDK。
+func (h *AdminHandler) ImportKeleaiPro20x(c *gin.Context) {
+	var req importKeleaiPro20xRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginutil.RespondBindError(c, err)
+		return
+	}
+	imported, err := h.cards.ImportKeleaiPro20xCodes(req.Codes)
+	if err != nil {
+		switch {
+		case errors.Is(err, giftcardcontract.ErrInvalid):
+			ginutil.RespondError(c, response.CodeBadRequest, "error.gift_card_invalid", nil)
+		default:
+			ginutil.RespondError(c, response.CodeInternal, "error.gift_card_create_failed", nil)
+		}
+		return
+	}
+	response.Success(c, gin.H{
+		"batch_no": "UPSTREAM-KELEAI-PRO20X",
 		"imported": imported,
 	})
 }

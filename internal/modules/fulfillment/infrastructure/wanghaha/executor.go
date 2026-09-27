@@ -124,15 +124,15 @@ func (e *Executor) start(ctx context.Context, cdk, accountID string) (string, bo
 	if err := e.requestJSON(ctx, http.MethodPost, "/site-api/external/redeem/appstore/start-stable", body, &response); err != nil {
 		return "", false, err
 	}
-	if responseSucceeded(response) {
-		return responseTaskID(response), true, nil
-	}
-	if responseWaiting(response) {
-		return responseTaskID(response), false, nil
-	}
 	taskID := responseTaskID(response)
 	if taskID != "" {
 		return taskID, false, nil
+	}
+	if responseWaiting(response) {
+		return "", false, nil
+	}
+	if responseSucceeded(response) {
+		return "", true, nil
 	}
 	return "", false, errUpstreamFailed
 }

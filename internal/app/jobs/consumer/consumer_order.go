@@ -272,6 +272,48 @@ func (c *Consumer) handleOrderAutoFulfill(_ context.Context, task *asynq.Task) e
 	return nil
 }
 
+// handlePlusAutoFulfill 处理 Plus 自动交付桥任务。
+// V0.1 不自动重试；业务失败保持 fulfilling，留给人工接管。
+func (c *Consumer) handlePlusAutoFulfill(ctx context.Context, task *asynq.Task) error {
+	if c == nil || task == nil {
+		logger.Debugw("worker_plus_auto_fulfill_skip_nil", "consumer_nil", c == nil, "task_nil", task == nil)
+		return nil
+	}
+	var payload queue.PlusAutoFulfillPayload
+	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
+		logger.Warnw("worker_plus_auto_fulfill_invalid_payload")
+		return nil
+	}
+	if payload.OrderID == 0 || c.FulfillmentService == nil {
+		logger.Debugw("worker_plus_auto_fulfill_skip_invalid", "order_id", payload.OrderID)
+		return nil
+	}
+
+	_, err := c.FulfillmentService.ExecutePlusAutoFulfillment(ctx, payload.OrderID)
+	if err == nil {
+		return nil
+	}
+	switch {
+	case errors.Is(err, fulfillmentapp.ErrFulfillmentExists):
+		logger.Debugw("worker_plus_auto_fulfill_skip_exists", "order_id", payload.OrderID)
+	case errors.Is(err, fulfillmentapp.ErrPlusExecutorUnavailable):
+		logger.Debugw("worker_plus_auto_fulfill_executor_unavailable", "order_id", payload.OrderID)
+	case errors.Is(err, fulfillmentapp.ErrPlusExecutionFailed):
+		// 不输出上游错误正文，避免敏感信息进入日志或错误栈。
+		logger.Warnw("worker_plus_auto_fulfill_failed", "order_id", payload.OrderID)
+	case errors.Is(err, fulfillmentapp.ErrFulfillmentNotPlus):
+		logger.Debugw("worker_plus_auto_fulfill_skip_not_plus", "order_id", payload.OrderID)
+	case errors.Is(err, orderapp.ErrOrderStatusInvalid):
+		logger.Debugw("worker_plus_auto_fulfill_skip_invalid_status", "order_id", payload.OrderID)
+	case errors.Is(err, orderapp.ErrOrderNotFound):
+		logger.Debugw("worker_plus_auto_fulfill_skip_order_not_found", "order_id", payload.OrderID)
+	default:
+		// V0.1 明确不做重试矩阵；任何未分类失败都保留订单现状，由人工接管。
+		logger.Warnw("worker_plus_auto_fulfill_internal_failed", "order_id", payload.OrderID)
+	}
+	return nil
+}
+
 // handleOrderTimeoutCancel 处理超时未支付订单自动取消任务。
 func (c *Consumer) handleOrderTimeoutCancel(_ context.Context, task *asynq.Task) error {
 	if c == nil || task == nil {

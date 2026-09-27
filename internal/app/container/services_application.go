@@ -15,6 +15,7 @@ import (
 	couponapp "github.com/dujiao-next/internal/modules/coupon/application"
 	fulfillmentapp "github.com/dujiao-next/internal/modules/fulfillment/application"
 	fulfillmentqueue "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/queueadapter"
+	fulfillmentkeleai "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/keleai"
 	fulfillmentwanghaha "github.com/dujiao-next/internal/modules/fulfillment/infrastructure/wanghaha"
 	giftcardapp "github.com/dujiao-next/internal/modules/giftcard/application"
 	giftcardqueue "github.com/dujiao-next/internal/modules/giftcard/infrastructure/queueadapter"
@@ -123,6 +124,7 @@ func (c *Container) initApplicationServices() {
 		ExternalIdentityStore: c.ExternalIdentityStore,
 	})
 	c.FulfillmentService.SetPlusExecutor(fulfillmentwanghaha.New(c.GiftCardRepo))
+	c.FulfillmentService.SetKeleaiPro20xExecutor(fulfillmentkeleai.New(c.GiftCardRepo, c.Config.App.SecretKey))
 	c.CardSecretService = cardsecretapp.NewService(cardsecretapp.ServiceOptions{
 		Secrets:      c.CardSecretRepo,
 		Batches:      c.CardSecretBatchRepo,
@@ -134,10 +136,11 @@ func (c *Container) initApplicationServices() {
 		Repo:     c.GiftCardRepo,
 		Users:    c.UserStore,
 		Currency: giftcardsettingscurrency.New(c.SettingService),
-		Redeemer: giftcardredeemgormuow.NewWithProducts(c.GiftCardRepo, c.WalletService, c.ProductRepo, c.ProductSKURepo),
+		Redeemer: giftcardredeemgormuow.NewWithProductsSecure(c.GiftCardRepo, c.WalletService, c.ProductRepo, c.ProductSKURepo, c.Config.App.SecretKey),
 		Products:         c.ProductRepo,
 		SKUs:             c.ProductSKURepo,
-		PlusAutoFulfillQ: giftcardqueue.New(c.QueueClient),
+		PlusAutoFulfillQ:      giftcardqueue.New(c.QueueClient),
+		KeleaiPro20xFulfillQ: giftcardqueue.New(c.QueueClient),
 	})
 	c.CouponAdminService = couponapp.NewAdminService(c.CouponRepo)
 	c.PromotionAdminService = promotionapp.NewAdminService(c.PromotionRepo)

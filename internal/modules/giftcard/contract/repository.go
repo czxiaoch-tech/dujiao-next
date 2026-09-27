@@ -34,6 +34,7 @@ type Repository interface {
 	CreateBatch(batch *giftcarddomain.GiftCardBatch, cards []giftcarddomain.GiftCard) error
 	GetByID(id uint) (*giftcarddomain.GiftCard, error)
 	GetByCode(code string) (*giftcarddomain.GiftCard, error)
+	RevealCode(card *giftcarddomain.GiftCard) (string, error)
 	List(filter ListFilter) ([]giftcarddomain.GiftCard, int64, error)
 	ListByIDs(ids []uint) ([]giftcarddomain.GiftCard, error)
 	Update(card *giftcarddomain.GiftCard) error

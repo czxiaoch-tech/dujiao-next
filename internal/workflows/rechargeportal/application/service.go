@@ -38,6 +38,7 @@ const (
 type CardService interface {
 	ResolveGiftCard(code string) (*giftcardapp.ResolveResult, error)
 	RedeemPublicProductCode(input giftcardapp.RedeemInput) (*giftcardapp.RedeemResult, error)
+	GenerateMirrorSimulationCode() (string, error)
 }
 
 type Service struct {
@@ -97,6 +98,30 @@ func New(cards CardService, products productcontract.Repository, skus productcon
 		orders: orders,
 		codec: sensitiveform.New(appSecret),
 	}
+}
+
+type SimulationFixture struct {
+	Enabled     bool   `json:"enabled"`
+	TestCode    string `json:"test_code,omitempty"`
+	TestSession string `json:"test_session_json,omitempty"`
+}
+
+func (s *Service) SimulationFixture(ctx context.Context, enabled bool) (*SimulationFixture, error) {
+	if !enabled {
+		return &SimulationFixture{Enabled: false}, nil
+	}
+	if s == nil || s.cards == nil {
+		return nil, ErrUnavailable
+	}
+	code, err := s.cards.GenerateMirrorSimulationCode()
+	if err != nil {
+		return nil, ErrUnavailable
+	}
+	return &SimulationFixture{
+		Enabled:  true,
+		TestCode: code,
+		TestSession: "{"user":{"email":"simulation@example.invalid"},"sessionToken":"simulation-session-token","accessToken":"simulation-access-token","account_id":"11111111-1111-1111-1111-111111111111"}",
+	}, nil
 }
 
 func (s *Service) Preview(ctx context.Context, code string) (*PreviewResult, error) {

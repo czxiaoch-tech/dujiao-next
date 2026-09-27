@@ -5,11 +5,115 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dujiao-next/internal/constants"
 	giftcarddomain "github.com/dujiao-next/internal/modules/giftcard/domain"
+	"github.com/dujiao-next/internal/shared/money"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+
+// ImportProductCodesToBatch 把外部上游 CDK 加密导入指定内部批次。
+// 只返回导入数量，不返回任何明文卡密。
+func (r *Store) ImportProductCodesToBatch(batchNo, name string, productID, skuID uint, codes []string, now time.Time) (int, error) {
+	if r == nil || r.db == nil || r.codec == nil || productID == 0 || skuID == 0 {
+		return 0, errors.New("invalid upstream product-code import")
+	}
+	batchNo = strings.TrimSpace(strings.ToUpper(batchNo))
+	name = strings.TrimSpace(name)
+	if batchNo == "" || name == "" {
+		return 0, errors.New("invalid upstream product-code batch")
+	}
+	if now.IsZero() {
+		now = time.Now()
+	}
+
+	seen := make(map[string]struct{}, len(codes))
+	normalized := make([]string, 0, len(codes))
+	for _, raw := range codes {
+		code := normalizeCode(raw)
+		if code == "" {
+			continue
+		}
+		if _, exists := seen[code]; exists {
+			continue
+		}
+		seen[code] = struct{}{}
+		normalized = append(normalized, code)
+	}
+	if len(normalized) == 0 || len(normalized) > 1000 {
+		return 0, errors.New("invalid upstream product-code count")
+	}
+
+	imported := 0
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		var batch giftcarddomain.GiftCardBatch
+		err := tx.Where("batch_no = ? AND deleted_at IS NULL", batchNo).First(&batch).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			batch = giftcarddomain.GiftCardBatch{
+				BatchNo:   batchNo,
+				Name:      name,
+				Amount:    money.FromDecimal(decimal.Zero),
+				Currency:  constants.SiteCurrencyDefault,
+				Quantity:  0,
+				CreatedAt: now,
+				UpdatedAt: now,
+			}
+			if err := tx.Create(&batch).Error; err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		}
+
+		store := r.WithTx(tx)
+		cards := make([]giftcarddomain.GiftCard, 0, len(normalized))
+		for _, code := range normalized {
+			pid := productID
+			sid := skuID
+			card := giftcarddomain.GiftCard{
+				BatchID:    &batch.ID,
+				Name:       name,
+				Code:       code,
+				Amount:     money.FromDecimal(decimal.Zero),
+				Currency:   constants.SiteCurrencyDefault,
+				RedeemType: giftcarddomain.GiftCardRedeemTypeProduct,
+				ProductID:  &pid,
+				SKUID:      &sid,
+				Status:     giftcarddomain.GiftCardStatusActive,
+				CreatedAt:  now,
+				UpdatedAt:  now,
+			}
+			if err := store.prepareCardForStorage(&card); err != nil {
+				return err
+			}
+			cards = append(cards, card)
+		}
+
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&cards)
+		if result.Error != nil {
+			return result.Error
+		}
+		imported = int(result.RowsAffected)
+		if imported > 0 {
+			if err := tx.Model(&giftcarddomain.GiftCardBatch{}).
+				Where("id = ?", batch.ID).
+				Updates(map[string]interface{}{
+					"quantity":   gorm.Expr("quantity + ?", imported),
+					"updated_at": now,
+				}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return imported, nil
+}
 
 // ReserveActiveProductCodeByBatchNo 原子预留指定后台批次中的一张产品码。
 // V0.1 用于隐藏上游 CDK；只接受精确 batch_no，不使用模糊匹配。

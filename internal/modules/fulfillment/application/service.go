@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	productcontract "github.com/dujiao-next/internal/modules/catalog/product/contract"
 	fulfillmentcontract "github.com/dujiao-next/internal/modules/fulfillment/contract"
 	fulfillmentdomain "github.com/dujiao-next/internal/modules/fulfillment/domain"
 	externalidentitycontract "github.com/dujiao-next/internal/modules/identity/externalidentity/contract"
@@ -25,6 +26,7 @@ import (
 // Service 编排人工交付与自动交付。
 type Service struct {
 	orderStore            ordercontract.Store
+	products              productcontract.Repository
 	fulfillmentRepo       fulfillmentcontract.Store
 	orderQueue            ordercontract.Queue
 	botNotifier           BotNotifier
@@ -32,6 +34,7 @@ type Service struct {
 	defaultEmailConfig    config.EmailConfig
 	downstreamCallbackSvc DownstreamCallbackEnqueuer
 	userOAuthIdentityRepo externalidentitycontract.Store
+	plusExecutor          PlusExecutor
 }
 
 type BotNotifier interface {
@@ -42,6 +45,13 @@ type DownstreamCallbackEnqueuer interface {
 	EnqueueCallback(orderID uint)
 }
 
+func (s *Service) SetPlusExecutor(executor PlusExecutor) {
+	if s == nil {
+		return
+	}
+	s.plusExecutor = executor
+}
+
 // SetDownstreamCallbackService 设置下游回调服务（解决循环依赖）
 func (s *Service) SetDownstreamCallbackService(svc DownstreamCallbackEnqueuer) {
 	s.downstreamCallbackSvc = svc
@@ -50,6 +60,7 @@ func (s *Service) SetDownstreamCallbackService(svc DownstreamCallbackEnqueuer) {
 // Options 汇总交付用例依赖。
 type Options struct {
 	OrderStore            ordercontract.Store
+	ProductStore          productcontract.Repository
 	FulfillmentStore      fulfillmentcontract.Store
 	OrderQueue            ordercontract.Queue
 	BotNotifier           BotNotifier
@@ -64,6 +75,7 @@ func New(
 ) *Service {
 	return &Service{
 		orderStore:            opts.OrderStore,
+		products:              opts.ProductStore,
 		fulfillmentRepo:       opts.FulfillmentStore,
 		orderQueue:            opts.OrderQueue,
 		botNotifier:           opts.BotNotifier,

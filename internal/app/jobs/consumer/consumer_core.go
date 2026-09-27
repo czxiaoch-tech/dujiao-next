@@ -40,6 +40,7 @@ func (c *Consumer) Register(mux *asynq.ServeMux) {
 	mux.HandleFunc(queue.TaskOrderStatusEmail, withPanicRecovery(queue.TaskOrderStatusEmail, c.handleOrderStatusEmail))
 	mux.HandleFunc(queue.TaskOrderAutoFulfill, withPanicRecovery(queue.TaskOrderAutoFulfill, c.handleOrderAutoFulfill))
 	mux.HandleFunc(queue.TaskPlusAutoFulfill, withPanicRecovery(queue.TaskPlusAutoFulfill, c.handlePlusAutoFulfill))
+	mux.HandleFunc(queue.TaskKeleaiPro20xFulfill, withPanicRecovery(queue.TaskKeleaiPro20xFulfill, c.handleKeleaiPro20xFulfill))
 	mux.HandleFunc(queue.TaskOrderTimeoutCancel, withPanicRecovery(queue.TaskOrderTimeoutCancel, c.handleOrderTimeoutCancel))
 	mux.HandleFunc(queue.TaskWalletRechargeExpire, withPanicRecovery(queue.TaskWalletRechargeExpire, c.handleWalletRechargeExpire))
 	mux.HandleFunc(queue.TaskNotificationDispatch, withPanicRecovery(queue.TaskNotificationDispatch, c.handleNotificationDispatch))

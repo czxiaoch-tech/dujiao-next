@@ -10,6 +10,10 @@ type PlusAutoFulfillmentQueue interface {
 	EnqueuePlusAutoFulfill(orderID uint) error
 }
 
+type KeleaiPro20xFulfillmentQueue interface {
+	EnqueueKeleaiPro20xFulfill(orderID uint) error
+}
+
 type Service struct {
 	repo              giftcardcontract.Repository
 	users             giftcardcontract.UserDirectory
@@ -17,7 +21,8 @@ type Service struct {
 	redeemer          giftcardcontract.RedeemTransactionRunner
 	products          productcontract.Repository
 	skus              productcontract.SKURepository
-	plusAutoFulfillQ  PlusAutoFulfillmentQueue
+	plusAutoFulfillQ        PlusAutoFulfillmentQueue
+	keleaiPro20xFulfillQ   KeleaiPro20xFulfillmentQueue
 }
 
 // Options 组装管理用例依赖。
@@ -28,7 +33,8 @@ type Options struct {
 	Redeemer         giftcardcontract.RedeemTransactionRunner
 	Products         productcontract.Repository
 	SKUs             productcontract.SKURepository
-	PlusAutoFulfillQ PlusAutoFulfillmentQueue
+	PlusAutoFulfillQ      PlusAutoFulfillmentQueue
+	KeleaiPro20xFulfillQ KeleaiPro20xFulfillmentQueue
 }
 
 func NewService(opts Options) *Service {
@@ -42,6 +48,7 @@ func NewService(opts Options) *Service {
 		redeemer:         opts.Redeemer,
 		products:         opts.Products,
 		skus:             opts.SKUs,
-		plusAutoFulfillQ: opts.PlusAutoFulfillQ,
+		plusAutoFulfillQ:      opts.PlusAutoFulfillQ,
+		keleaiPro20xFulfillQ: opts.KeleaiPro20xFulfillQ,
 	}
 }

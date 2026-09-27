@@ -15,6 +15,7 @@ func RegisterAdminRoutes(admin gin.IRoutes, handler *AdminHandler) {
 	admin.PATCH("/gift-cards/batch-status", handler.BatchUpdateStatus)
 	admin.POST("/gift-cards/export", handler.Export)
 	admin.POST("/gift-cards/upstream/wanghaha-plus/import", handler.ImportWanghahaPlus)
+	admin.POST("/gift-cards/upstream/keleai-pro20x/import", handler.ImportKeleaiPro20x)
 }
 
 func RegisterChannelRoutes(channel gin.IRoutes, handler *ChannelHandler) {

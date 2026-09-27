@@ -15,6 +15,8 @@ const (
 	TaskOrderAutoFulfill = constants.TaskOrderAutoFulfill
 	// TaskPlusAutoFulfill Plus 自动交付桥任务
 	TaskPlusAutoFulfill = constants.TaskPlusAutoFulfill
+	// TaskKeleaiPro20xFulfill Keleai Pro20X 自动交付任务
+	TaskKeleaiPro20xFulfill = constants.TaskKeleaiPro20xFulfill
 	// TaskOrderTimeoutCancel 超时取消任务
 	TaskOrderTimeoutCancel = constants.TaskOrderTimeoutCancel
 	// TaskWalletRechargeExpire 钱包充值超时过期任务
@@ -57,6 +59,10 @@ type OrderAutoFulfillPayload struct {
 
 // PlusAutoFulfillPayload Plus 自动交付桥任务载荷。
 type PlusAutoFulfillPayload struct {
+	OrderID uint `json:"order_id"`
+}
+
+type KeleaiPro20xFulfillPayload struct {
 	OrderID uint `json:"order_id"`
 }
 
@@ -105,6 +111,14 @@ func NewPlusAutoFulfillTask(payload PlusAutoFulfillPayload) (*asynq.Task, error)
 		return nil, err
 	}
 	return asynq.NewTask(TaskPlusAutoFulfill, body), nil
+}
+
+func NewKeleaiPro20xFulfillTask(payload KeleaiPro20xFulfillPayload) (*asynq.Task, error) {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	return asynq.NewTask(TaskKeleaiPro20xFulfill, body), nil
 }
 
 // NewOrderTimeoutCancelTask 创建超时取消任务

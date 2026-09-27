@@ -25,3 +25,15 @@ func (q *Queue) EnqueuePlusAutoFulfill(orderID uint) error {
 		asynq.MaxRetry(0),
 	)
 }
+
+
+// EnqueueKeleaiPro20xFulfill V0.1 只执行一次，不配置自动重试。
+func (q *Queue) EnqueueKeleaiPro20xFulfill(orderID uint) error {
+	if q == nil || q.client == nil || orderID == 0 {
+		return nil
+	}
+	return q.client.EnqueueKeleaiPro20xFulfill(
+		queue.KeleaiPro20xFulfillPayload{OrderID: orderID},
+		asynq.MaxRetry(0),
+	)
+}

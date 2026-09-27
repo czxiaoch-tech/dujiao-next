@@ -19,5 +19,8 @@ var (
 	ErrCardSecretInsufficient  = orderapp.ErrCardSecretInsufficient
 	ErrPlusExecutorUnavailable = errors.New("plus fulfillment executor unavailable")
 	ErrPlusExecutionFailed     = errors.New("plus fulfillment execution failed")
-	ErrFulfillmentNotPlus      = errors.New("fulfillment not plus")
+	ErrFulfillmentNotPlus               = errors.New("fulfillment not plus")
+	ErrKeleaiPro20xExecutorUnavailable  = errors.New("keleai pro20x executor unavailable")
+	ErrKeleaiPro20xExecutionFailed      = errors.New("keleai pro20x execution failed")
+	ErrFulfillmentNotKeleaiPro20x       = errors.New("fulfillment not keleai pro20x")
 )

@@ -22,6 +22,7 @@ import (
 	resellertransport "github.com/dujiao-next/internal/modules/reseller/transport/http/user"
 	publicconfigtransport "github.com/dujiao-next/internal/modules/settings/transport/http/public"
 	wallettransport "github.com/dujiao-next/internal/modules/wallet/transport/http"
+	rechargeportalhttp "github.com/dujiao-next/internal/workflows/rechargeportal/transport/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -34,6 +35,7 @@ func registerStorefrontRoutes(
 	publicContentHandler *contenttransport.PublicHandler,
 	publicCatalogHandler *producthttp.PublicHandler,
 	publicCategoryHandler *categoryhttp.PublicHandler,
+	rechargePortalHandler *rechargeportalhttp.Handler,
 	userResellerHandler *resellertransport.UserHandler,
 	userResellerProductSettingHandler *resellertransport.UserProductSettingHandler,
 	userResellerFinanceHandler *resellertransport.UserFinanceHandler,
@@ -80,6 +82,9 @@ func registerStorefrontRoutes(
 		captchatransport.RegisterPublicRoutes(public, captchatransport.NewPublicHandler(c.CaptchaService))
 		affiliatetransport.RegisterPublicRoutes(public, affiliateHandler)
 		memberleveltransport.RegisterPublicRoutes(public, publicMemberLevelHandler)
+		recharge := public.Group("/recharge")
+		recharge.Use(middleware.RateLimitMiddleware(redisClient, guestWriteRule, middleware.KeyByIP))
+		rechargeportalhttp.RegisterRoutes(recharge, rechargePortalHandler)
 	}
 
 	// 游客接口

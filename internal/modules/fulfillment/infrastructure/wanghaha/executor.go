@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://sub.whh985.com"
+	defaultBaseURL = "https://sub.whh985.xyz"
 	upstreamBatch  = "UPSTREAM-WANGHAHA-PLUS"
 )
 
@@ -71,6 +71,10 @@ func (e *Executor) Execute(ctx context.Context, input fulfillmentapp.PlusExecuti
 		return fulfillmentapp.PlusExecutionResult{}, errUpstreamFailed
 	}
 
+	if err := e.verifyCDK(ctx, cdk); err != nil {
+		return fulfillmentapp.PlusExecutionResult{}, err
+	}
+
 	taskID, done, err := e.start(ctx, cdk, accountID)
 	if err != nil {
 		return fulfillmentapp.PlusExecutionResult{}, errUpstreamFailed
@@ -92,7 +96,8 @@ func (e *Executor) Execute(ctx context.Context, input fulfillmentapp.PlusExecuti
 		return fulfillmentapp.PlusExecutionResult{}, errUpstreamFailed
 	}
 	return fulfillmentapp.PlusExecutionResult{
-		PublicMessage: "ChatGPT Plus 自动充值已完成",
+		PublicMessage:     "ChatGPT Plus 自动充值已完成",
+		ProviderReference: taskID,
 	}, nil
 }
 
@@ -108,6 +113,40 @@ func readAccountID(submission map[string]interface{}) string {
 		}
 	}
 	return ""
+}
+
+func (e *Executor) verifyCDK(ctx context.Context, cdk string) error {
+	var response map[string]interface{}
+	if err := e.requestJSON(
+		ctx,
+		http.MethodPost,
+		"/site-api/__relay/cdk/info-batch?product=gpt",
+		map[string]interface{}{
+			"cdks":     []string{cdk},
+			"product":  "gpt",
+			"platform": "gpt",
+		},
+		&response,
+	); err != nil {
+		return errUpstreamFailed
+	}
+
+	data, _ := response["data"].(map[string]interface{})
+	results, _ := data["results"].([]interface{})
+	if len(results) == 0 {
+		return errNoUpstreamCode
+	}
+	item, _ := results[0].(map[string]interface{})
+	if !strings.EqualFold(scalarString(item["status"]), "ok") {
+		return errNoUpstreamCode
+	}
+	info, _ := item["info"].(map[string]interface{})
+	if boolValue(info["used"]) || boolValue(item["used"]) ||
+		scalarString(info["use_status"]) == "1" ||
+		boolValue(info["reserved"]) || boolValue(info["processing"]) || boolValue(item["processing"]) {
+		return errNoUpstreamCode
+	}
+	return nil
 }
 
 func (e *Executor) start(ctx context.Context, cdk, accountID string) (string, bool, error) {
@@ -284,6 +323,11 @@ func responseStatus(value map[string]interface{}) string {
 		}
 	}
 	return ""
+}
+
+func boolValue(value interface{}) bool {
+	v, _ := value.(bool)
+	return v
 }
 
 func scalarString(value interface{}) string {

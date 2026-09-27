@@ -120,7 +120,7 @@ func (s *Service) SimulationFixture(ctx context.Context, enabled bool) (*Simulat
 	return &SimulationFixture{
 		Enabled:  true,
 		TestCode: code,
-		TestSession: "{"user":{"email":"simulation@example.invalid"},"sessionToken":"simulation-session-token","accessToken":"simulation-access-token","account_id":"11111111-1111-1111-1111-111111111111"}",
+		TestSession: `{"user":{"email":"simulation@example.invalid"},"sessionToken":"simulation-session-token","accessToken":"simulation-access-token","account_id":"11111111-1111-1111-1111-111111111111"}`,
 	}, nil
 }
 

@@ -35,6 +35,7 @@ type Service struct {
 	downstreamCallbackSvc DownstreamCallbackEnqueuer
 	userOAuthIdentityRepo externalidentitycontract.Store
 	plusExecutor          PlusExecutor
+	keleaiPro20xExecutor  KeleaiPro20xExecutor
 }
 
 type BotNotifier interface {
@@ -50,6 +51,13 @@ func (s *Service) SetPlusExecutor(executor PlusExecutor) {
 		return
 	}
 	s.plusExecutor = executor
+}
+
+func (s *Service) SetKeleaiPro20xExecutor(executor KeleaiPro20xExecutor) {
+	if s == nil {
+		return
+	}
+	s.keleaiPro20xExecutor = executor
 }
 
 // SetDownstreamCallbackService 设置下游回调服务（解决循环依赖）

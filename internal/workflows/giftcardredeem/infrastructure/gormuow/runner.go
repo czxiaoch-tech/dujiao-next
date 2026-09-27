@@ -20,6 +20,7 @@ import (
 	"github.com/dujiao-next/internal/shared/jsonmap"
 	"github.com/dujiao-next/internal/shared/money"
 	"github.com/dujiao-next/internal/shared/serial"
+	"github.com/dujiao-next/internal/shared/sensitiveform"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -27,10 +28,11 @@ import (
 
 // Runner 将礼品卡状态、钱包入账或产品订单创建绑定到同一个 GORM 事务。
 type Runner struct {
-	cards    *gormstore.Store
-	wallet   *walletapp.Service
-	products *productgormstore.ProductStore
-	skus     *productgormstore.SKUStore
+	cards          *gormstore.Store
+	wallet         *walletapp.Service
+	products       *productgormstore.ProductStore
+	skus           *productgormstore.SKUStore
+	sensitiveCodec *sensitiveform.Codec
 }
 
 // New 保留原余额礼品卡构造方式，避免影响既有调用与渠道兑换。
@@ -48,6 +50,23 @@ func NewWithProducts(
 	return &Runner{cards: cards, wallet: wallet, products: products, skus: skus}
 }
 
+// NewWithProductsSecure 在产品兑换码订单路径启用敏感表单字段加密。
+func NewWithProductsSecure(
+	cards *gormstore.Store,
+	wallet *walletapp.Service,
+	products *productgormstore.ProductStore,
+	skus *productgormstore.SKUStore,
+	appSecret string,
+) *Runner {
+	return &Runner{
+		cards:          cards,
+		wallet:         wallet,
+		products:       products,
+		skus:           skus,
+		sensitiveCodec: sensitiveform.New(appSecret),
+	}
+}
+
 func (r *Runner) WithinRedeemTransaction(fn func(tx giftcardcontract.RedeemTransaction) error) error {
 	if r == nil || r.cards == nil || r.wallet == nil {
 		return giftcardcontract.ErrFetchFailed
@@ -57,18 +76,20 @@ func (r *Runner) WithinRedeemTransaction(fn func(tx giftcardcontract.RedeemTrans
 			db:       tx,
 			cards:    r.cards.WithTx(tx),
 			wallet:   r.wallet,
-			products: r.products.BindTx(tx),
-			skus:     r.skus.BindTx(tx),
+			products:       r.products.BindTx(tx),
+			skus:           r.skus.BindTx(tx),
+			sensitiveCodec: r.sensitiveCodec,
 		})
 	})
 }
 
 type transaction struct {
-	db       *gorm.DB
-	cards    *gormstore.Store
-	wallet   *walletapp.Service
-	products productcontract.Repository
-	skus     productcontract.SKURepository
+	db             *gorm.DB
+	cards          *gormstore.Store
+	wallet         *walletapp.Service
+	products       productcontract.Repository
+	skus           productcontract.SKURepository
+	sensitiveCodec *sensitiveform.Codec
 }
 
 func (tx *transaction) GetByCodeForUpdate(code string) (*giftcarddomain.GiftCard, error) {
@@ -128,6 +149,18 @@ func (tx *transaction) CreateProductOrder(input giftcardcontract.ProductOrderInp
 	)
 	if err != nil {
 		return nil, giftcardcontract.ErrInvalid
+	}
+
+	if strings.EqualFold(strings.TrimSpace(product.Slug), "chatgpt-pro-20x") {
+		rawSession, _ := normalizedSubmission["session_json"].(string)
+		if strings.TrimSpace(rawSession) == "" || tx.sensitiveCodec == nil {
+			return nil, giftcardcontract.ErrInvalid
+		}
+		encryptedSession, sealErr := tx.sensitiveCodec.Seal(rawSession)
+		if sealErr != nil {
+			return nil, giftcardcontract.ErrCreateFailed
+		}
+		normalizedSubmission["session_json"] = encryptedSession
 	}
 
 	price := sku.PriceAmount.Decimal.Round(2)
